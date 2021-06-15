@@ -10,15 +10,11 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import AccountBalanceWalletIcon from "@material-ui/icons/AccountBalanceWallet";
 import { Button, IconButton } from "@material-ui/core";
-import MenuIcon from "@material-ui/icons/Menu";
-import Chats from "@material-ui/icons/Forum";
-import HomeIcon from "@material-ui/icons/Home";
-import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+
 import LibraryBooksIcon from "@material-ui/icons/LibraryBooks";
-import FavoriteIcon from "@material-ui/icons/Favorite";
-import SettingsIcon from "@material-ui/icons/Settings";
-import { Link, useHistory } from "react-router-dom";
+import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
+import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -44,6 +40,12 @@ export default function Header({}: Props): ReactElement {
   const classes = useStyles();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const toggleDrawer = () => setDrawerOpen(!drawerOpen);
+  const history = useHistory();
+
+  const logout = () => {
+    sessionStorage.setItem("validate", "false");
+    history.push("/");
+  };
 
   return (
     <div className={classes.root}>
@@ -59,6 +61,13 @@ export default function Header({}: Props): ReactElement {
 
           <IconButton>
             <AccountCircleIcon
+              style={{ color: "white", marginRight: 8 }}
+              aria-label="menu"
+            />
+          </IconButton>
+
+          <IconButton onClick={logout}>
+            <ExitToAppIcon
               style={{ color: "white", marginRight: 8 }}
               aria-label="menu"
             />

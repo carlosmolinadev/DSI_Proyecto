@@ -1,24 +1,19 @@
 import React, { ReactElement } from "react";
 import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
-import clsx from "clsx";
-import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
-import CardMedia from "@material-ui/core/CardMedia";
-import CardContent from "@material-ui/core/CardContent";
-import CardActions from "@material-ui/core/CardActions";
-import Collapse from "@material-ui/core/Collapse";
-import Avatar from "@material-ui/core/Avatar";
-import IconButton from "@material-ui/core/IconButton";
+
 import Typography from "@material-ui/core/Typography";
-import { red } from "@material-ui/core/colors";
-import FavoriteIcon from "@material-ui/icons/Favorite";
-import ShareIcon from "@material-ui/icons/Share";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { Button, FormControl, Grid, Paper, TextField } from "@material-ui/core";
-import { useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { db } from "../firebase/firebase";
+import { notificationFunction } from "../common/notifications/notifications";
+import { useHistory } from "react-router-dom";
 
 interface Props {}
+
+interface Credenciales {
+  usuario: string;
+  password: string;
+}
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -40,7 +35,56 @@ export default function Login({}: Props): ReactElement {
   const classes = useStyles();
 
   //Register Form
-  const { register, handleSubmit, errors, control, setValue } = useForm();
+  const { register, handleSubmit, errors, control, setValue } =
+    useForm<Credenciales>();
+
+  const history = useHistory();
+
+  const onSubmit: SubmitHandler<Credenciales> = (data) => {
+    // db.collection("perfil").doc("MM18054").set({
+    //   nombre: "Carlos",
+    //   apellido: "Molina",
+    //   cargo: "administrador",
+    //   correo: "carlos@gmail.com",
+    //   password: "12345",
+    //   empleadoId: "MM18054",
+    //   fechaCreacion: new Date().getTime(),
+    //   usuario: "carlos",
+    // });
+
+    const { usuario, password } = data;
+
+    ingresar(usuario.toUpperCase(), password);
+  };
+
+  const ingresar = async (usuario: string, password: string) => {
+    const data = await db.collection("perfil").doc(usuario).get();
+
+    if (data.exists) {
+      const credenciales = data.data();
+      if (
+        credenciales?.empleadoId === usuario &&
+        credenciales?.password === password
+      ) {
+        history.push("/inicio");
+        sessionStorage.setItem("validate", "true");
+      } else {
+        notificationFunction(
+          "Usuario o contraseña incorrecta",
+          "Verificar la información agregada o contactar al administrador para más detalles",
+          "danger",
+          3000
+        );
+      }
+    } else {
+      notificationFunction(
+        "Usuario o contraseña incorrecta",
+        "Verificar la información agregada o contactar al administrador para más detalles",
+        "danger",
+        3000
+      );
+    }
+  };
 
   return (
     <Grid container justify="center" className={classes.mainContainer}>
@@ -51,35 +95,37 @@ export default function Login({}: Props): ReactElement {
           </Typography>
         </Grid>
 
-        <Grid container justify="center">
-          <FormControl className={classes.formControl}>
-            <TextField
-              label="Usuario*"
-              variant="outlined"
-              inputRef={register}
-              name="title"
-              defaultValue=""
-            />
-          </FormControl>
-        </Grid>
+        <form onSubmit={handleSubmit(onSubmit)} style={{ width: "100%" }}>
+          <Grid container justify="center">
+            <FormControl className={classes.formControl}>
+              <TextField
+                label="Usuario*"
+                variant="outlined"
+                inputRef={register}
+                name="usuario"
+                defaultValue=""
+              />
+            </FormControl>
+          </Grid>
 
-        <Grid container justify="center">
-          <FormControl className={classes.formControl}>
-            <TextField
-              label="Contraseña*"
-              variant="outlined"
-              inputRef={register}
-              name="password"
-              defaultValue=""
-            />
-          </FormControl>
-        </Grid>
+          <Grid container justify="center">
+            <FormControl className={classes.formControl}>
+              <TextField
+                label="Contraseña*"
+                variant="outlined"
+                inputRef={register}
+                name="password"
+                defaultValue=""
+              />
+            </FormControl>
+          </Grid>
 
-        <Grid container justify="center">
-          <Button variant="contained" color="primary">
-            Ingresar
-          </Button>
-        </Grid>
+          <Grid container justify="center">
+            <Button variant="contained" color="primary" type="submit">
+              Ingresar
+            </Button>
+          </Grid>
+        </form>
       </Paper>
     </Grid>
   );
