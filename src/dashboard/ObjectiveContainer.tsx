@@ -19,6 +19,7 @@ import Paper from "@material-ui/core/Paper";
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
 import { useHistory } from "react-router-dom";
+import { db } from "../firebase/firebase";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -35,35 +36,16 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface RouteParams {
+interface Objective {
   id: string;
+  categoria: string;
+  meta: number;
+  descripcion: string;
+  peso: number;
+  logro: number;
 }
 
 interface Props {}
-
-function createData(
-  categoria: string,
-  meta: number,
-  descripcion: string,
-  peso: number,
-  logro: number
-) {
-  return { categoria, meta, descripcion, peso, logro };
-}
-
-const rows = [
-  createData(
-    "Lorem",
-    159,
-    "Hi    sdasd sda asdasda da asdada asdad ad adadasd adasd asd asd ",
-    24,
-    4.0
-  ),
-  createData("Ice cream sandwich", 237, "Hi", 37, 4.3),
-  createData("Eclair", 262, "Hi", 24, 6.0),
-  createData("Cupcake", 305, "Hi", 67, 4.3),
-  createData("Gingerbread", 356, "Hi", 49, 3.9),
-];
 
 export default function ObjectiveContainer({}: Props): ReactElement {
   const classes = useStyles();
@@ -77,24 +59,55 @@ export default function ObjectiveContainer({}: Props): ReactElement {
     setOpenModal(true);
   };
 
+  const [objectives, setObjectives] = useState<Objective[]>([]);
+
   useEffect(() => {
     const validate = sessionStorage.getItem("validate");
     if (validate === "false") {
       history.push("/");
     }
+  }, [history]);
+
+  useEffect(() => {
+    const user = sessionStorage.getItem("user");
+    const getObjectives = async () => {
+      if (user !== null) {
+        db.collection("perfil")
+          .doc(user)
+          .collection("objetivos")
+          .onSnapshot((docs) => {
+            const objectivesCopy: Objective[] = [];
+            docs.forEach((item) => {
+              const modifyObjective = { ...item.data(), id: item.id };
+              objectivesCopy.push(modifyObjective as Objective);
+            });
+            setObjectives(objectivesCopy);
+          });
+      }
+    };
+
+    getObjectives();
   }, []);
+
+  const deleteItem = (id: string) => {
+    const user = sessionStorage.getItem("user");
+    db.collection("perfil").doc(user!).collection("objetivos").doc(id).delete();
+  };
 
   const testDatabase = () => {
     const employee = {
-      empleado_id: "MM18054",
-      usuario: "carlos@admin",
-      credenciales: "mm18054",
-      nombre: "Carlos",
-      apellido: "Molina",
+      empleado_id: "GF18005",
+      usuario: "efrain@admin",
+      credenciales: "GF18005",
+      nombre: "Efrain",
+      apellido: "Gomez",
       cargo: "administrador",
-      correo: "carlos@gmail.com",
+      correo: "efrain@gmail.com",
       fechaCreacion: new Date().getDate(),
     };
+    db.collection("perfil")
+      .doc("GF18005")
+      .set({ ...employee });
   };
 
   const ingresarObjetivo = () => {
@@ -117,8 +130,8 @@ export default function ObjectiveContainer({}: Props): ReactElement {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((row, index) => (
-                <TableRow hover={true} key={index}>
+              {objectives.map((row) => (
+                <TableRow hover={true} key={row.id}>
                   <TableCell scope="row">{row.categoria}</TableCell>
                   <TableCell align="right">{row.meta}</TableCell>
                   <TableCell align="right" style={{ width: 200 }}>
@@ -129,12 +142,12 @@ export default function ObjectiveContainer({}: Props): ReactElement {
                   <TableCell>
                     <Grid container justify="center">
                       <Grid item>
-                        <IconButton>
+                        <IconButton onClick={testDatabase}>
                           <EditIcon />
                         </IconButton>
                       </Grid>
                       <Grid item>
-                        <IconButton>
+                        <IconButton onClick={() => deleteItem(row.id)}>
                           <DeleteForeverIcon />
                         </IconButton>
                       </Grid>

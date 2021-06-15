@@ -16,6 +16,7 @@ import {
 } from "@material-ui/core";
 import React, { ReactElement, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { notificationFunction } from "../../common/notifications/notifications";
 import { db } from "../../firebase/firebase";
 
 interface Props {
@@ -73,14 +74,25 @@ export default function Objective({
   const { register, handleSubmit, errors, control, setValue } = useForm();
 
   const onSubmit = (data: any) => {
+    const user = sessionStorage.getItem("user");
     const { categoria, meta, descripcion, peso, logro } = data;
-    db.collection("colaborador").doc("mm18054").collection("objetivos").add({
-      categoria,
-      meta,
-      descripcion,
-      peso,
-      logro,
-    });
+    if (user !== null) {
+      db.collection("perfil").doc(user).collection("objetivos").add({
+        categoria,
+        meta,
+        descripcion,
+        peso,
+        logro,
+      });
+
+      closeModal();
+      notificationFunction(
+        "Objetivo ingresado",
+        "El objetivo ha sido ingresado exitosamente",
+        "success",
+        2000
+      );
+    }
   };
 
   const categoryList = [
@@ -177,7 +189,7 @@ export default function Objective({
                   label="Logro*"
                   variant="outlined"
                   inputRef={register}
-                  name="peso"
+                  name="logro"
                   defaultValue=""
                   type="logro"
                 />

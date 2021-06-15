@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement, useEffect, useState } from "react";
 import { createStyles, Theme, makeStyles } from "@material-ui/core/styles";
 import Drawer from "@material-ui/core/Drawer";
 import AppBar from "@material-ui/core/AppBar";
@@ -44,15 +44,25 @@ export default function Header({}: Props): ReactElement {
 
   const logout = () => {
     sessionStorage.setItem("validate", "false");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("validate");
+    sessionStorage.removeItem("username");
     history.push("/");
   };
+
+  const [fullname, setFullName] = useState<string | null>("");
+
+  useEffect(() => {
+    const name = sessionStorage.getItem("username");
+    setFullName(name);
+  }, [fullname]);
 
   return (
     <div className={classes.root}>
       <AppBar position="fixed">
         <Toolbar className={classes.toolbar}>
           <Typography style={{ flex: 1, marginLeft: 10 }}>
-            BIENVENIDO USUARIO
+            {`Bienvenido ${fullname}`}
           </Typography>
 
           <IconButton>
