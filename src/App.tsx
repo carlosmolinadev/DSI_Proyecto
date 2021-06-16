@@ -4,7 +4,7 @@ import { Route, Switch } from "react-router-dom";
 import "./App.css";
 import Header from "./common/header/Header";
 import ObjectiveContainer from "./dashboard/ObjectiveContainer";
-import Objective from "./dashboard/objectives/Objective";
+import ObjectiveDetails from "./dashboard/objectives/ObjectiveDetails";
 import Login from "./login/Login";
 import ReactNotification from "react-notifications-component";
 import "react-notifications-component/dist/theme.css";

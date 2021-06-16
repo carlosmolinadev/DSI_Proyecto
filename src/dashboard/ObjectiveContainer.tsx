@@ -8,7 +8,7 @@ import {
   Theme,
   Typography,
 } from "@material-ui/core";
-import Objective from "./objectives/Objective";
+import ObjectiveDetails from "./objectives/ObjectiveDetails";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface Objective {
+export interface Objective {
   id: string;
   categoria: string;
   meta: number;
@@ -60,6 +60,9 @@ export default function ObjectiveContainer({}: Props): ReactElement {
   };
 
   const [objectives, setObjectives] = useState<Objective[]>([]);
+  const [objectiveEdit, setObjectiveEdit] = useState<Objective | null>(null);
+
+  const [edit, setEdit] = useState(false);
 
   useEffect(() => {
     const validate = sessionStorage.getItem("validate");
@@ -87,11 +90,19 @@ export default function ObjectiveContainer({}: Props): ReactElement {
     };
 
     getObjectives();
+
+    return () => {};
   }, []);
 
   const deleteItem = (id: string) => {
     const user = sessionStorage.getItem("user");
     db.collection("perfil").doc(user!).collection("objetivos").doc(id).delete();
+  };
+
+  const editObjective = (objective: Objective) => {
+    setObjectiveEdit(objective);
+    setEdit(true);
+    handleOpenEmailModal();
   };
 
   const testDatabase = () => {
@@ -115,62 +126,71 @@ export default function ObjectiveContainer({}: Props): ReactElement {
   };
 
   const showTable = () => {
-    return (
-      <Grid container style={{ width: "80%", marginTop: 16 }}>
-        <TableContainer component={Paper}>
-          <Table className={classes.table} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Categoría</TableCell>
-                <TableCell align="right">Meta</TableCell>
-                <TableCell align="right">Descripción del objetivo</TableCell>
-                <TableCell align="right">Peso</TableCell>
-                <TableCell align="right">Logro</TableCell>
-                <TableCell align="right"></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {objectives.map((row) => (
-                <TableRow hover={true} key={row.id}>
-                  <TableCell scope="row">{row.categoria}</TableCell>
-                  <TableCell align="right">{row.meta}</TableCell>
-                  <TableCell align="right" style={{ width: 200 }}>
-                    {row.descripcion}
-                  </TableCell>
-                  <TableCell align="right">{row.peso}</TableCell>
-                  <TableCell align="right">{row.logro}</TableCell>
-                  <TableCell>
-                    <Grid container justify="center">
-                      <Grid item>
-                        <IconButton onClick={testDatabase}>
-                          <EditIcon />
-                        </IconButton>
-                      </Grid>
-                      <Grid item>
-                        <IconButton onClick={() => deleteItem(row.id)}>
-                          <DeleteForeverIcon />
-                        </IconButton>
-                      </Grid>
-                    </Grid>
-                  </TableCell>
+    if (objectives.length > 0) {
+      return (
+        <Grid container style={{ width: "80%", marginTop: 16 }}>
+          <TableContainer component={Paper}>
+            <Table className={classes.table} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Categoría</TableCell>
+                  <TableCell align="right">Meta</TableCell>
+                  <TableCell align="right">Descripción del objetivo</TableCell>
+                  <TableCell align="right">Peso</TableCell>
+                  <TableCell align="right">Logro</TableCell>
+                  <TableCell align="right"></TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Grid>
-    );
+              </TableHead>
+              <TableBody>
+                {objectives.map((row) => (
+                  <TableRow hover={true} key={row.id}>
+                    <TableCell
+                      scope="row"
+                      style={{ textTransform: "capitalize", width: 150 }}
+                    >
+                      {row.categoria.replaceAll("_", " ")}
+                    </TableCell>
+                    <TableCell align="right">{row.meta}</TableCell>
+                    <TableCell align="right" style={{ width: 200 }}>
+                      {row.descripcion}
+                    </TableCell>
+                    <TableCell align="right">{row.peso}</TableCell>
+                    <TableCell align="right">{row.logro}</TableCell>
+                    <TableCell>
+                      <Grid container justify="center">
+                        <Grid item>
+                          <IconButton onClick={() => editObjective(row)}>
+                            <EditIcon />
+                          </IconButton>
+                        </Grid>
+                        <Grid item>
+                          <IconButton onClick={() => deleteItem(row.id)}>
+                            <DeleteForeverIcon />
+                          </IconButton>
+                        </Grid>
+                      </Grid>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Grid>
+      );
+    }
   };
 
   return (
     <>
       <Grid container justify="center" className={classes.mainContainer}>
-        <Grid>
-          <Typography>
-            Todavia no se ha agregado ningun objetivo, seleccionar agregar
-            objetivo para comenzar
-          </Typography>
-        </Grid>
+        {objectives.length === 0 && (
+          <Grid>
+            <Typography>
+              Todavia no se ha agregado ningun objetivo, seleccionar agregar
+              objetivo para comenzar
+            </Typography>
+          </Grid>
+        )}
 
         {showTable()}
 
@@ -185,7 +205,12 @@ export default function ObjectiveContainer({}: Props): ReactElement {
         </Grid>
       </Grid>
 
-      <Objective openModal={openModal} closeModal={handleCloseEmailModal} />
+      <ObjectiveDetails
+        openModal={openModal}
+        closeModal={handleCloseEmailModal}
+        edit={edit}
+        objectiveData={objectiveEdit}
+      />
     </>
   );
 }

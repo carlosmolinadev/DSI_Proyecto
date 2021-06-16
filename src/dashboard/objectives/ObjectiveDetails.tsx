@@ -18,10 +18,13 @@ import React, { ReactElement, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { notificationFunction } from "../../common/notifications/notifications";
 import { db } from "../../firebase/firebase";
+import { Objective } from "../ObjectiveContainer";
 
 interface Props {
   openModal: boolean;
   closeModal: () => void;
+  objectiveData: Objective | null;
+  edit: boolean;
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -62,9 +65,11 @@ function getModalStyle() {
   };
 }
 
-export default function Objective({
+export default function ObjectiveDetails({
   openModal,
   closeModal,
+  objectiveData,
+  edit,
 }: Props): ReactElement {
   const classes = useStyles();
   //Style for the modal
@@ -77,32 +82,52 @@ export default function Objective({
     const user = sessionStorage.getItem("user");
     const { categoria, meta, descripcion, peso, logro } = data;
     if (user !== null) {
-      db.collection("perfil").doc(user).collection("objetivos").add({
-        categoria,
-        meta,
-        descripcion,
-        peso,
-        logro,
-      });
+      if (edit) {
+        db.collection("perfil")
+          .doc(user)
+          .collection("objetivos")
+          .doc(objectiveData?.id)
+          .update({
+            categoria,
+            meta,
+            descripcion,
+            peso,
+            logro,
+          });
+        notificationFunction(
+          "Objetivo modificado",
+          "El objetivo ha sido modificado exitosamente",
+          "success",
+          2000
+        );
+      } else {
+        db.collection("perfil").doc(user).collection("objetivos").add({
+          categoria,
+          meta,
+          descripcion,
+          peso,
+          logro,
+        });
+        notificationFunction(
+          "Objetivo ingresado",
+          "El objetivo ha sido ingresado exitosamente",
+          "success",
+          2000
+        );
+      }
 
       closeModal();
-      notificationFunction(
-        "Objetivo ingresado",
-        "El objetivo ha sido ingresado exitosamente",
-        "success",
-        2000
-      );
     }
   };
 
   const categoryList = [
-    { value: "optimizacion", label: "Alto desempeño" },
+    { value: "alto_rendimiento", label: "Alto rendimiento" },
     { value: "cantidad", label: "Cantidad" },
-    { value: "desarrollo", label: "Desarrollo sostenible" },
+    { value: "desarrollo_sostenible", label: "Desarrollo sostenible" },
     { value: "fecha", label: "Fecha" },
-    { value: "gestionNegocio", label: "Gestión de negocio" },
+    { value: "gestion_de_negocio", label: "Gestión de negocio" },
     { value: "porcentaje", label: "Porcentaje" },
-    { value: "reduccion", label: "Reducción de gastos" },
+    { value: "reduccion_de_gastos", label: "Reducción de gastos" },
   ];
 
   const modalBody = (
@@ -127,7 +152,12 @@ export default function Objective({
                 <InputLabel htmlFor="categoria">Categoría*</InputLabel>
                 <Controller
                   as={
-                    <Select label="Categoria*" defaultValue="optimizacion">
+                    <Select
+                      label="Categoria*"
+                      defaultValue={
+                        edit ? objectiveData?.categoria : "alto_rendimiento"
+                      }
+                    >
                       {categoryList.map((item) => (
                         <MenuItem key={item.value} value={item.value}>
                           {item.label}
@@ -135,7 +165,9 @@ export default function Objective({
                       ))}
                     </Select>
                   }
-                  defaultValue="optimizacion"
+                  defaultValue={
+                    edit ? objectiveData?.categoria : "alto_rendimiento"
+                  }
                   name="categoria"
                   control={control}
                   // rules={{ required: true }}
@@ -153,7 +185,7 @@ export default function Objective({
                   variant="outlined"
                   inputRef={register}
                   name="meta"
-                  defaultValue=""
+                  defaultValue={edit ? objectiveData?.meta : ""}
                 />
               </FormControl>
             </Grid>
@@ -165,7 +197,7 @@ export default function Objective({
                   variant="outlined"
                   inputRef={register}
                   name="descripcion"
-                  defaultValue=""
+                  defaultValue={edit ? objectiveData?.descripcion : ""}
                 />
               </FormControl>
             </Grid>
@@ -177,7 +209,7 @@ export default function Objective({
                   variant="outlined"
                   inputRef={register}
                   name="peso"
-                  defaultValue=""
+                  defaultValue={edit ? objectiveData?.peso : ""}
                   type="number"
                 />
               </FormControl>
@@ -190,7 +222,7 @@ export default function Objective({
                   variant="outlined"
                   inputRef={register}
                   name="logro"
-                  defaultValue=""
+                  defaultValue={edit ? objectiveData?.logro : ""}
                   type="logro"
                 />
               </FormControl>
