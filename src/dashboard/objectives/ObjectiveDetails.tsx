@@ -19,6 +19,8 @@ import { Controller, useForm } from "react-hook-form";
 import { notificationFunction } from "../../common/notifications/notifications";
 import { db } from "../../firebase/firebase";
 import { Objective } from "../ObjectiveContainer";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 
 interface Props {
   openModal: boolean;
@@ -75,8 +77,35 @@ export default function ObjectiveDetails({
   //Style for the modal
   const [modalStyle] = useState(getModalStyle);
 
+  //Schema registration
+  const schema = yup.object().shape({
+    categoria: yup.string().required(),
+    meta: yup.string().required(),
+    descripcion: yup.string().required(),
+    peso: yup
+      .number()
+      .typeError("El campo es requerido")
+      .required("El campo es requerido")
+      .min(1, "El valor ingresado debe ser mayor a 1")
+      .max(100, "El valor ingresado no puede ser mayor a 100"),
+    logro: yup
+      .number()
+      .min(1, "El valor ingresado debe ser mayor a 1")
+      .max(100, "El valor ingresado no puede ser mayor a 100"),
+  });
+
   //Register Form
-  const { register, handleSubmit, errors, control, setValue } = useForm();
+  const { register, handleSubmit, errors, control, setValue } =
+    useForm<Objective>({ resolver: yupResolver(schema) });
+
+  // const verifyWeight = (user:string, edit:boolean) => {
+  //   const data = db.collection('perfil').doc(user).collection('objetivos').get();
+  //   const peso = data.then(doc => {
+  //     if (doc.exists) {
+  //       return doc.data().
+  //     }
+  //   })
+  // }
 
   const onSubmit = (data: any) => {
     const user = sessionStorage.getItem("user");
@@ -147,7 +176,7 @@ export default function ObjectiveDetails({
               <FormControl
                 variant="outlined"
                 className={classes.formControl}
-                error={errors.model && true}
+                error={errors.categoria ? true : false}
               >
                 <InputLabel htmlFor="categoria">Categoría*</InputLabel>
                 <Controller
@@ -172,7 +201,7 @@ export default function ObjectiveDetails({
                   control={control}
                   // rules={{ required: true }}
                 />
-                {errors.model && (
+                {errors.categoria && (
                   <FormHelperText>El campo es requerido</FormHelperText>
                 )}
               </FormControl>
@@ -186,6 +215,8 @@ export default function ObjectiveDetails({
                   inputRef={register}
                   name="meta"
                   defaultValue={edit ? objectiveData?.meta : ""}
+                  helperText={errors.meta && "El campo es requerido"}
+                  error={errors.meta ? true : false}
                 />
               </FormControl>
             </Grid>
@@ -198,6 +229,8 @@ export default function ObjectiveDetails({
                   inputRef={register}
                   name="descripcion"
                   defaultValue={edit ? objectiveData?.descripcion : ""}
+                  helperText={errors.descripcion && "El campo es requerido"}
+                  error={errors.descripcion ? true : false}
                 />
               </FormControl>
             </Grid>
@@ -211,6 +244,8 @@ export default function ObjectiveDetails({
                   name="peso"
                   defaultValue={edit ? objectiveData?.peso : ""}
                   type="number"
+                  helperText={errors.peso?.message}
+                  error={errors.peso ? true : false}
                 />
               </FormControl>
             </Grid>
@@ -218,12 +253,14 @@ export default function ObjectiveDetails({
             <Grid container justify="center">
               <FormControl className={classes.formControl}>
                 <TextField
-                  label="Logro*"
+                  label="Logro"
                   variant="outlined"
                   inputRef={register}
                   name="logro"
                   defaultValue={edit ? objectiveData?.logro : ""}
                   type="logro"
+                  helperText={errors.logro?.message}
+                  error={errors.logro ? true : false}
                 />
               </FormControl>
             </Grid>
