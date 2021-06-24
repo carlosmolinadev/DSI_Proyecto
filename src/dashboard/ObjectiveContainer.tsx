@@ -61,8 +61,13 @@ export default function ObjectiveContainer({}: Props): ReactElement {
 
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [objectiveEdit, setObjectiveEdit] = useState<Objective | null>(null);
+  const [objectivePercentage, setObjectivePercentage] = useState(0);
 
   const [edit, setEdit] = useState(false);
+
+  const handleEdit = () => {
+    setEdit(false);
+  };
 
   useEffect(() => {
     const validate = sessionStorage.getItem("validate");
@@ -84,6 +89,11 @@ export default function ObjectiveContainer({}: Props): ReactElement {
               const modifyObjective = { ...item.data(), id: item.id };
               objectivesCopy.push(modifyObjective as Objective);
             });
+            objectivesCopy.forEach((item) => {
+              const peso = item.peso;
+              setObjectivePercentage((item) => item + peso);
+            });
+
             setObjectives(objectivesCopy);
           });
       }
@@ -122,6 +132,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
   };
 
   const ingresarObjetivo = () => {
+    setEdit(false);
     handleOpenEmailModal();
   };
 
@@ -136,8 +147,8 @@ export default function ObjectiveContainer({}: Props): ReactElement {
                   <TableCell>Categoría</TableCell>
                   <TableCell align="right">Meta</TableCell>
                   <TableCell align="right">Descripción del objetivo</TableCell>
-                  <TableCell align="right">Peso</TableCell>
-                  <TableCell align="right">Logro</TableCell>
+                  <TableCell align="right">Peso%</TableCell>
+                  <TableCell align="right">Logro%</TableCell>
                   <TableCell align="right"></TableCell>
                 </TableRow>
               </TableHead>
@@ -210,6 +221,8 @@ export default function ObjectiveContainer({}: Props): ReactElement {
         closeModal={handleCloseEmailModal}
         edit={edit}
         objectiveData={objectiveEdit}
+        onCloseEdit={handleEdit}
+        objectivePercentage={objectivePercentage}
       />
     </>
   );

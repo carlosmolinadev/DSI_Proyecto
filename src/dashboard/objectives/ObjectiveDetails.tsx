@@ -27,6 +27,8 @@ interface Props {
   closeModal: () => void;
   objectiveData: Objective | null;
   edit: boolean;
+  onCloseEdit: () => void;
+  objectivePercentage: number;
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -72,6 +74,8 @@ export default function ObjectiveDetails({
   closeModal,
   objectiveData,
   edit,
+  onCloseEdit,
+  objectivePercentage,
 }: Props): ReactElement {
   const classes = useStyles();
   //Style for the modal
@@ -109,43 +113,54 @@ export default function ObjectiveDetails({
 
   const onSubmit = (data: any) => {
     const user = sessionStorage.getItem("user");
-    const { categoria, meta, descripcion, peso, logro } = data;
-    if (user !== null) {
-      if (edit) {
-        db.collection("perfil")
-          .doc(user)
-          .collection("objetivos")
-          .doc(objectiveData?.id)
-          .update({
+    const { categoria, meta, descripcion, peso: tempPeso, logro } = data;
+    const peso = parseInt(tempPeso);
+
+    if (peso + objectivePercentage > 100) {
+      notificationFunction(
+        "El objetivo no ha podido ser agregado",
+        "El objetivo sobrepasa el 100% del peso",
+        "danger",
+        2000
+      );
+    } else {
+      if (user !== null) {
+        if (edit) {
+          db.collection("perfil")
+            .doc(user)
+            .collection("objetivos")
+            .doc(objectiveData?.id)
+            .update({
+              categoria,
+              meta,
+              descripcion,
+              peso,
+              logro,
+            });
+          notificationFunction(
+            "Objetivo modificado",
+            "El objetivo ha sido modificado exitosamente",
+            "success",
+            2000
+          );
+        } else {
+          db.collection("perfil").doc(user).collection("objetivos").add({
             categoria,
             meta,
             descripcion,
             peso,
             logro,
           });
-        notificationFunction(
-          "Objetivo modificado",
-          "El objetivo ha sido modificado exitosamente",
-          "success",
-          2000
-        );
-      } else {
-        db.collection("perfil").doc(user).collection("objetivos").add({
-          categoria,
-          meta,
-          descripcion,
-          peso,
-          logro,
-        });
-        notificationFunction(
-          "Objetivo ingresado",
-          "El objetivo ha sido ingresado exitosamente",
-          "success",
-          2000
-        );
+          notificationFunction(
+            "Objetivo ingresado",
+            "El objetivo ha sido ingresado exitosamente",
+            "success",
+            2000
+          );
+        }
+        onCloseEdit();
+        closeModal();
       }
-
-      closeModal();
     }
   };
 
