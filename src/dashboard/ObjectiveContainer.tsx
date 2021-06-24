@@ -70,6 +70,18 @@ export default function ObjectiveContainer({}: Props): ReactElement {
   };
 
   useEffect(() => {
+    let total = 0;
+    objectives.forEach((item) => {
+      const peso = item.peso;
+      total = total + peso;
+    });
+
+    setObjectivePercentage(total);
+  }, [objectives]);
+
+  console.log(objectivePercentage);
+
+  useEffect(() => {
     const validate = sessionStorage.getItem("validate");
     if (validate === "false") {
       history.push("/");
@@ -88,10 +100,6 @@ export default function ObjectiveContainer({}: Props): ReactElement {
             docs.forEach((item) => {
               const modifyObjective = { ...item.data(), id: item.id };
               objectivesCopy.push(modifyObjective as Objective);
-            });
-            objectivesCopy.forEach((item) => {
-              const peso = item.peso;
-              setObjectivePercentage((item) => item + peso);
             });
 
             setObjectives(objectivesCopy);

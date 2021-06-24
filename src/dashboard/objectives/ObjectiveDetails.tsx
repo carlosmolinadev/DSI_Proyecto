@@ -116,6 +116,8 @@ export default function ObjectiveDetails({
     const { categoria, meta, descripcion, peso: tempPeso, logro } = data;
     const peso = parseInt(tempPeso);
 
+    //console.log(peso, objectivePercentage);
+
     if (peso + objectivePercentage > 100) {
       notificationFunction(
         "El objetivo no ha podido ser agregado",
