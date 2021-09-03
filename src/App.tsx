@@ -8,6 +8,8 @@ import ObjectiveDetails from "./dashboard/objectives/ObjectiveDetails";
 import Login from "./login/Login";
 import ReactNotification from "react-notifications-component";
 import "react-notifications-component/dist/theme.css";
+import Evaluation from "./evaluation/Evaluation";
+import Home from "./dashboard/Home";
 
 function App() {
   return (
@@ -20,7 +22,17 @@ function App() {
 
         <Route exact path="/inicio">
           <Header />
+          <Home />
+        </Route>
+
+        <Route exact path="/objetivos">
+          <Header />
           <ObjectiveContainer />
+        </Route>
+
+        <Route exact path="/evaluacion">
+          <Header />
+          <Evaluation user={"MM18054"} />
         </Route>
       </Switch>
     </>

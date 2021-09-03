@@ -1,15 +1,9 @@
 import React, { ReactElement, useEffect, useState } from "react";
 import { createStyles, Theme, makeStyles } from "@material-ui/core/styles";
-import Drawer from "@material-ui/core/Drawer";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
-import List from "@material-ui/core/List";
 import Typography from "@material-ui/core/Typography";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import AccountBalanceWalletIcon from "@material-ui/icons/AccountBalanceWallet";
-import { Button, IconButton } from "@material-ui/core";
+import { IconButton } from "@material-ui/core";
 
 import LibraryBooksIcon from "@material-ui/icons/LibraryBooks";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
@@ -38,8 +32,6 @@ interface Props {}
 
 export default function Header({}: Props): ReactElement {
   const classes = useStyles();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
   const history = useHistory();
 
   const logout = () => {
@@ -62,7 +54,7 @@ export default function Header({}: Props): ReactElement {
       <AppBar position="fixed">
         <Toolbar className={classes.toolbar}>
           <Typography style={{ flex: 1, marginLeft: 10 }}>
-            {`Bienvenido ${fullname}`}
+            {`Bienvenid@ ${fullname}`}
           </Typography>
 
           <IconButton>

@@ -62,7 +62,6 @@ export default function Login({}: Props): ReactElement {
 
     if (data.exists) {
       const credenciales = data.data();
-      console.log(credenciales);
       if (
         credenciales?.empleadoId === usuario &&
         credenciales?.password === password

@@ -62,6 +62,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [objectiveEdit, setObjectiveEdit] = useState<Objective | null>(null);
   const [objectivePercentage, setObjectivePercentage] = useState(0);
+  const [evaluationCompleted, setEvaluationCompleted] = useState(false);
 
   const [edit, setEdit] = useState(false);
 
@@ -79,8 +80,6 @@ export default function ObjectiveContainer({}: Props): ReactElement {
     setObjectivePercentage(total);
   }, [objectives]);
 
-  console.log(objectivePercentage);
-
   useEffect(() => {
     const validate = sessionStorage.getItem("validate");
     if (validate === "false") {
@@ -94,6 +93,8 @@ export default function ObjectiveContainer({}: Props): ReactElement {
       if (user !== null) {
         db.collection("perfil")
           .doc(user)
+          .collection("evaluacion")
+          .doc("2021")
           .collection("objetivos")
           .onSnapshot((docs) => {
             const objectivesCopy: Objective[] = [];
@@ -107,14 +108,47 @@ export default function ObjectiveContainer({}: Props): ReactElement {
       }
     };
 
+    const setEvaluationComplete = async () => {
+      db.collection("perfil")
+        .doc(user!)
+        .collection("evaluacion")
+        .doc("2021")
+        .get()
+        .then((data) => {
+          if (data.exists) {
+            setEvaluationCompleted(data.data()?.isCompleted);
+          }
+        });
+    };
+
     getObjectives();
+    setEvaluationComplete();
 
     return () => {};
   }, []);
 
   const deleteItem = (id: string) => {
     const user = sessionStorage.getItem("user");
-    db.collection("perfil").doc(user!).collection("objetivos").doc(id).delete();
+    db.collection("perfil")
+      .doc(user!)
+      .collection("evaluacion")
+      .doc("2021")
+      .collection("objetivos")
+      .doc(id)
+      .delete();
+  };
+
+  const saveEvaluation = () => {
+    const user = sessionStorage.getItem("user");
+    db.collection("perfil")
+      .doc(user!)
+      .collection("evaluacion")
+      .doc("2021")
+      .set({
+        isCompleted: true,
+      });
+
+    setEvaluationCompleted(true);
   };
 
   const editObjective = (objective: Objective) => {
@@ -123,21 +157,21 @@ export default function ObjectiveContainer({}: Props): ReactElement {
     handleOpenEmailModal();
   };
 
-  const testDatabase = () => {
-    const employee = {
-      empleado_id: "GF18005",
-      usuario: "efrain@admin",
-      credenciales: "GF18005",
-      nombre: "Efrain",
-      apellido: "Gomez",
-      cargo: "administrador",
-      correo: "efrain@gmail.com",
-      fechaCreacion: new Date().getDate(),
-    };
-    db.collection("perfil")
-      .doc("GF18005")
-      .set({ ...employee });
-  };
+  // const testDatabase = () => {
+  //   const employee = {
+  //     empleado_id: "GF18005",
+  //     usuario: "efrain@admin",
+  //     credenciales: "GF18005",
+  //     nombre: "Efrain",
+  //     apellido: "Gomez",
+  //     cargo: "administrador",
+  //     correo: "efrain@gmail.com",
+  //     fechaCreacion: new Date().getDate(),
+  //   };
+  //   db.collection("perfil")
+  //     .doc("GF18005")
+  //     .set({ ...employee });
+  // };
 
   const ingresarObjetivo = () => {
     setEdit(false);
@@ -156,7 +190,6 @@ export default function ObjectiveContainer({}: Props): ReactElement {
                   <TableCell align="right">Meta</TableCell>
                   <TableCell align="right">Descripción del objetivo</TableCell>
                   <TableCell align="right">Peso%</TableCell>
-                  <TableCell align="right">Logro%</TableCell>
                   <TableCell align="right"></TableCell>
                 </TableRow>
               </TableHead>
@@ -174,7 +207,6 @@ export default function ObjectiveContainer({}: Props): ReactElement {
                       {row.descripcion}
                     </TableCell>
                     <TableCell align="right">{row.peso}</TableCell>
-                    <TableCell align="right">{row.logro}</TableCell>
                     <TableCell>
                       <Grid container justify="center">
                         <Grid item>
@@ -199,20 +231,45 @@ export default function ObjectiveContainer({}: Props): ReactElement {
     }
   };
 
-  return (
-    <>
-      <Grid container justify="center" className={classes.mainContainer}>
-        {objectives.length === 0 && (
+  const handleView = () => {
+    if (evaluationCompleted === true) {
+      return (
+        <Grid>
+          <Typography>
+            Los objetivos han sido ingresados, para completar la autoevaluación
+            dar click al siguiente link
+          </Typography>
+        </Grid>
+      );
+    }
+
+    if (objectives.length === 0) {
+      return (
+        <Grid>
           <Grid>
             <Typography>
               Todavia no se ha agregado ningun objetivo, seleccionar agregar
               objetivo para comenzar
             </Typography>
           </Grid>
-        )}
 
+          <Grid container justify="center">
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={ingresarObjetivo}
+              style={{ marginTop: 20, marginBottom: 20 }}
+            >
+              Agregar Objetivo
+            </Button>
+          </Grid>
+        </Grid>
+      );
+    }
+
+    return (
+      <>
         {showTable()}
-
         <Grid container justify="center" className={classes.addButton}>
           <Button
             variant="contained"
@@ -221,7 +278,24 @@ export default function ObjectiveContainer({}: Props): ReactElement {
           >
             Agregar Objetivo
           </Button>
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={saveEvaluation}
+            style={{ marginLeft: 20, marginRight: 20 }}
+          >
+            Guardar evaluación
+          </Button>
         </Grid>
+      </>
+    );
+  };
+
+  return (
+    <>
+      <Grid container justify="center" className={classes.mainContainer}>
+        {handleView()}
       </Grid>
 
       <ObjectiveDetails

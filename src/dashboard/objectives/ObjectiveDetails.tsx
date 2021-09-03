@@ -113,10 +113,8 @@ export default function ObjectiveDetails({
 
   const onSubmit = (data: any) => {
     const user = sessionStorage.getItem("user");
-    const { categoria, meta, descripcion, peso: tempPeso, logro } = data;
+    const { categoria, meta, descripcion, peso: tempPeso } = data;
     const peso = parseInt(tempPeso);
-
-    //console.log(peso, objectivePercentage);
 
     if (peso + objectivePercentage > 100) {
       notificationFunction(
@@ -130,6 +128,8 @@ export default function ObjectiveDetails({
         if (edit) {
           db.collection("perfil")
             .doc(user)
+            .collection("evaluacion")
+            .doc("2021")
             .collection("objetivos")
             .doc(objectiveData?.id)
             .update({
@@ -137,7 +137,6 @@ export default function ObjectiveDetails({
               meta,
               descripcion,
               peso,
-              logro,
             });
           notificationFunction(
             "Objetivo modificado",
@@ -146,13 +145,17 @@ export default function ObjectiveDetails({
             2000
           );
         } else {
-          db.collection("perfil").doc(user).collection("objetivos").add({
-            categoria,
-            meta,
-            descripcion,
-            peso,
-            logro,
-          });
+          db.collection("perfil")
+            .doc(user)
+            .collection("evaluacion")
+            .doc("2021")
+            .collection("objetivos")
+            .add({
+              categoria,
+              meta,
+              descripcion,
+              peso,
+            });
           notificationFunction(
             "Objetivo ingresado",
             "El objetivo ha sido ingresado exitosamente",
@@ -263,21 +266,6 @@ export default function ObjectiveDetails({
                   type="number"
                   helperText={errors.peso?.message}
                   error={errors.peso ? true : false}
-                />
-              </FormControl>
-            </Grid>
-
-            <Grid container justify="center">
-              <FormControl className={classes.formControl}>
-                <TextField
-                  label="Logro"
-                  variant="outlined"
-                  inputRef={register}
-                  name="logro"
-                  defaultValue={edit ? objectiveData?.logro : ""}
-                  type="logro"
-                  helperText={errors.logro?.message}
-                  error={errors.logro ? true : false}
                 />
               </FormControl>
             </Grid>
