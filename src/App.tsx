@@ -10,6 +10,7 @@ import ReactNotification from "react-notifications-component";
 import "react-notifications-component/dist/theme.css";
 import Evaluation from "./evaluation/Evaluation";
 import Home from "./dashboard/Home";
+import EvaluationContainer from "./evaluation/EvaluationContainer";
 
 function App() {
   return (
@@ -32,7 +33,7 @@ function App() {
 
         <Route exact path="/evaluacion">
           <Header />
-          <Evaluation user={"MM18054"} />
+          <EvaluationContainer user={"MM18054"} />
         </Route>
       </Switch>
     </>

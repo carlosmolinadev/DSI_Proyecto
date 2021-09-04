@@ -1,60 +1,167 @@
-import { Button, Grid, Typography } from "@material-ui/core";
+import {
+  Button,
+  FormControl,
+  Grid,
+  Paper,
+  TextField,
+  Typography,
+  createStyles,
+  makeStyles,
+  Theme,
+} from "@material-ui/core";
 import React, { ReactElement, useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
+import { Objective } from "../interface/generic";
 
 interface Props {
-  user: string;
+  objectives: Objective[];
+  mode: "revision" | "evaluacion";
 }
 
-export default function Evaluation({ user }: Props): ReactElement {
-  const [approved, setApproved] = useState(false);
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    mainContainer: {
+      position: "absolute",
+      width: 400,
+      height: "auto",
+      backgroundColor: theme.palette.background.paper,
+      border: "1px solid #000",
+      boxShadow: theme.shadows[5],
+      padding: 15,
+      [theme.breakpoints.down("xs")]: {
+        width: 280,
+        height: "auto",
+        padding: 15,
+      },
+    },
+    paper: {
+      padding: 20,
+    },
+    formControl: {
+      marginBottom: 16,
+    },
+    input: {
+      width: 250,
+    },
+  })
+);
 
-  useEffect(() => {
-    const path = db
-      .collection("perfil")
-      .doc(user)
-      .collection("evaluacion")
-      .doc("2021");
+export default function Evaluation({ objectives, mode }: Props): ReactElement {
+  const classes = useStyles();
+  const [disableInput, setDisableInput] = useState(false);
 
-    path.get().then((data) => {
-      if (data.exists) {
-        setApproved(data.data()!.isApproved);
-      }
-    });
+  const evaluationForm = () => {
+    if (mode === "revision") {
+      return (
+        <>
+          {objectives.map((item) => (
+            <Grid item>
+              <Paper key={item.id} style={{ padding: 20, marginTop: 20 }}>
+                <Grid container direction="column">
+                  <Typography style={{ textTransform: "capitalize" }}>
+                    Categoria: {item.categoria.replaceAll("_", " ")}
+                  </Typography>
 
-    return () => {};
-  }, []);
+                  <Typography>
+                    Descripción del objetivo: {item.descripcion}
+                  </Typography>
 
-  const showEvaluation = () => {
-    if (approved) {
-      return <Typography></Typography>;
+                  <Typography>Meta: {item.meta}</Typography>
+
+                  <Typography>Peso: {item.meta}</Typography>
+                </Grid>
+              </Paper>
+            </Grid>
+          ))}
+
+          <Grid style={{ marginTop: 20 }}>
+            <Button
+              style={{ marginRight: 20 }}
+              variant="contained"
+              color="primary"
+            >
+              Aprobar
+            </Button>
+            <Button
+              style={{ marginLeft: 20 }}
+              variant="contained"
+              color="secondary"
+            >
+              Denegar
+            </Button>
+          </Grid>
+        </>
+      );
     } else {
       return (
-        <Typography>
-          La autoevaluación esta pendiente de ser aprobada por el supervisor
-        </Typography>
+        <>
+          {objectives.map((item, index) => (
+            <Grid item>
+              <Paper key={item.id} style={{ padding: 20, marginTop: 20 }}>
+                <Grid container direction="column">
+                  <Typography
+                    style={{ textTransform: "capitalize", marginBottom: 10 }}
+                  >
+                    Categoria: {item.categoria.replaceAll("_", " ")}
+                  </Typography>
+
+                  <Typography style={{ marginBottom: 10 }}>
+                    Descripción del objetivo: {item.descripcion}
+                  </Typography>
+
+                  <Typography style={{ marginBottom: 10 }}>
+                    Meta: {item.meta}
+                  </Typography>
+
+                  <Typography style={{ marginBottom: 10 }}>
+                    Peso: {item.meta}
+                  </Typography>
+
+                  <Grid container className={classes.formControl}>
+                    <FormControl>
+                      <TextField
+                        className={classes.input}
+                        label="Logro*"
+                        variant="outlined"
+                        name="logro"
+                      />
+                    </FormControl>
+                  </Grid>
+
+                  <Grid container className={classes.formControl}>
+                    <FormControl>
+                      <TextField
+                        className={classes.input}
+                        label="Comentarios*"
+                        variant="outlined"
+                        name="comentarios"
+                        multiline
+                      />
+                    </FormControl>
+                  </Grid>
+
+                  <Grid container justify="center">
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => console.log(item.id)}
+                    >
+                      Editar
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Grid>
+          ))}
+        </>
       );
     }
   };
-
-  const execute = () => {
-    const data = {
-      id1_Objetivo: "Hacer mas cosas",
-      id1_Meta: "meta Id 1",
-      id2_Objetivo: "Hacer cosas 2",
-      id2_Meta: "meta Id 2",
-    };
-    for (let key of Object.entries(data)) {
-      console.log(key);
-    }
-  };
-
   return (
     <>
-      <Grid container justify="center" style={{ marginTop: 120 }}>
-        {showEvaluation()}
+      <Grid container alignItems="center" direction="column">
+        {evaluationForm()}
       </Grid>
-      <Button onClick={execute}>Execute</Button>
     </>
   );
 }

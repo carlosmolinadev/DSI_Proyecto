@@ -18,17 +18,18 @@ import React, { ReactElement, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { notificationFunction } from "../../common/notifications/notifications";
 import { db } from "../../firebase/firebase";
-import { Objective } from "../ObjectiveContainer";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { uuid } from "uuidv4";
+import { Objective } from "../../interface/generic";
 
 interface Props {
   openModal: boolean;
   closeModal: () => void;
   objectiveData: Objective | null;
+  objectives: Objective[];
   edit: boolean;
   onCloseEdit: () => void;
-  objectivePercentage: number;
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -73,9 +74,9 @@ export default function ObjectiveDetails({
   openModal,
   closeModal,
   objectiveData,
+  objectives,
   edit,
   onCloseEdit,
-  objectivePercentage,
 }: Props): ReactElement {
   const classes = useStyles();
   //Style for the modal
@@ -111,12 +112,28 @@ export default function ObjectiveDetails({
   //   })
   // }
 
+  // Cuando se ingresa un nuevo objetivo se envia a la base de datos
   const onSubmit = (data: any) => {
     const user = sessionStorage.getItem("user");
     const { categoria, meta, descripcion, peso: tempPeso } = data;
     const peso = parseInt(tempPeso);
+    const id = uuid();
+    let objetivos = [...objectives];
+    let currentWeight = 0;
+    const objective = {
+      categoria,
+      meta,
+      descripcion,
+      peso,
+      id,
+      logro: 0,
+      comentario_colaborador: "",
+      comentario_supervisor: "",
+    };
 
-    if (peso + objectivePercentage > 100) {
+    objetivos.forEach((item) => (currentWeight += item.peso));
+
+    if (currentWeight + peso > 100) {
       notificationFunction(
         "El objetivo no ha podido ser agregado",
         "El objetivo sobrepasa el 100% del peso",
@@ -126,18 +143,28 @@ export default function ObjectiveDetails({
     } else {
       if (user !== null) {
         if (edit) {
+          if (objectiveData !== null) {
+            const currentId = objectiveData.id;
+            let indexFound = 0;
+            objetivos.forEach((item, index) => {
+              if (item.id === currentId) {
+                indexFound = index;
+              }
+            });
+
+            objetivos[indexFound] = objective;
+          }
+
           db.collection("perfil")
             .doc(user)
-            .collection("evaluacion")
+            .collection("evaluaciones")
             .doc("2021")
-            .collection("objetivos")
-            .doc(objectiveData?.id)
-            .update({
-              categoria,
-              meta,
-              descripcion,
-              peso,
-            });
+            .set(
+              {
+                objetivos,
+              },
+              { merge: true }
+            );
           notificationFunction(
             "Objetivo modificado",
             "El objetivo ha sido modificado exitosamente",
@@ -145,17 +172,17 @@ export default function ObjectiveDetails({
             2000
           );
         } else {
+          objetivos.push(objective);
           db.collection("perfil")
             .doc(user)
-            .collection("evaluacion")
+            .collection("evaluaciones")
             .doc("2021")
-            .collection("objetivos")
-            .add({
-              categoria,
-              meta,
-              descripcion,
-              peso,
-            });
+            .set(
+              {
+                objetivos,
+              },
+              { merge: true }
+            );
           notificationFunction(
             "Objetivo ingresado",
             "El objetivo ha sido ingresado exitosamente",
