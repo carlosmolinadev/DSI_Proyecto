@@ -62,17 +62,23 @@ export default function Login({}: Props): ReactElement {
 
     if (data.exists) {
       const credenciales = data.data();
+      const role = credenciales?.rol;
+      const supervisorId = credenciales?.supervisorId;
       if (
         credenciales?.empleadoId === usuario &&
         credenciales?.password === password
       ) {
-        history.push("/inicio");
         sessionStorage.setItem("validate", "true");
         sessionStorage.setItem("user", `${credenciales?.empleadoId}`);
         sessionStorage.setItem(
           "username",
           `${credenciales?.nombre} ${credenciales?.apellido}`
         );
+        sessionStorage.setItem("role", role);
+        if (supervisorId !== undefined) {
+          sessionStorage.setItem("supervisorId", supervisorId);
+        }
+        history.push("/inicio");
       } else {
         notificationFunction(
           "Usuario o contraseña incorrecta",
@@ -121,6 +127,7 @@ export default function Login({}: Props): ReactElement {
                 inputRef={register}
                 name="password"
                 defaultValue=""
+                type="password"
               />
             </FormControl>
           </Grid>

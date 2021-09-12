@@ -20,6 +20,7 @@ import EditIcon from "@material-ui/icons/Edit";
 import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
 import { useHistory } from "react-router-dom";
 import { db } from "../firebase/firebase";
+import { Objective } from "../interface/generic";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -35,15 +36,6 @@ const useStyles = makeStyles((theme: Theme) =>
     },
   })
 );
-
-export interface Objective {
-  id: string;
-  categoria: string;
-  meta: number;
-  descripcion: string;
-  peso: number;
-  logro: number;
-}
 
 interface Props {}
 
@@ -61,7 +53,6 @@ export default function ObjectiveContainer({}: Props): ReactElement {
 
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [objectiveEdit, setObjectiveEdit] = useState<Objective | null>(null);
-  const [objectivePercentage, setObjectivePercentage] = useState(0);
   const [evaluationCompleted, setEvaluationCompleted] = useState(false);
 
   const [edit, setEdit] = useState(false);
@@ -69,16 +60,6 @@ export default function ObjectiveContainer({}: Props): ReactElement {
   const handleEdit = () => {
     setEdit(false);
   };
-
-  useEffect(() => {
-    let total = 0;
-    objectives.forEach((item) => {
-      const peso = item.peso;
-      total = total + peso;
-    });
-
-    setObjectivePercentage(total);
-  }, [objectives]);
 
   useEffect(() => {
     const validate = sessionStorage.getItem("validate");
@@ -93,17 +74,13 @@ export default function ObjectiveContainer({}: Props): ReactElement {
       if (user !== null) {
         db.collection("perfil")
           .doc(user)
-          .collection("evaluacion")
+          .collection("evaluaciones")
           .doc("2021")
-          .collection("objetivos")
-          .onSnapshot((docs) => {
-            const objectivesCopy: Objective[] = [];
-            docs.forEach((item) => {
-              const modifyObjective = { ...item.data(), id: item.id };
-              objectivesCopy.push(modifyObjective as Objective);
-            });
-
-            setObjectives(objectivesCopy);
+          .onSnapshot((snapshot) => {
+            if (snapshot.exists) {
+              const data = snapshot.data();
+              setObjectives(data?.objetivos);
+            }
           });
       }
     };
@@ -129,24 +106,30 @@ export default function ObjectiveContainer({}: Props): ReactElement {
 
   const deleteItem = (id: string) => {
     const user = sessionStorage.getItem("user");
+    const objetivos = objectives.filter((item) => item.id !== id);
+
     db.collection("perfil")
       .doc(user!)
-      .collection("evaluacion")
+      .collection("evaluaciones")
       .doc("2021")
-      .collection("objetivos")
-      .doc(id)
-      .delete();
+      .set({
+        objetivos,
+      });
   };
 
   const saveEvaluation = () => {
     const user = sessionStorage.getItem("user");
+    const supervisorId = sessionStorage.getItem("supervisorId");
     db.collection("perfil")
       .doc(user!)
-      .collection("evaluacion")
+      .collection("evaluaciones")
       .doc("2021")
-      .set({
-        isCompleted: true,
-      });
+      .set(
+        {
+          eval_realizada: true,
+        },
+        { merge: true }
+      );
 
     setEvaluationCompleted(true);
   };
@@ -236,9 +219,18 @@ export default function ObjectiveContainer({}: Props): ReactElement {
       return (
         <Grid>
           <Typography>
-            Los objetivos han sido ingresados, para completar la autoevaluación
-            dar click al siguiente link
+            Los objetivos han sido ingresados, esperando aprobación por parte
+            del supervisor.
           </Typography>
+          <Grid container justify="center" style={{ marginTop: 15 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => history.push("/inicio")}
+            >
+              Continuar
+            </Button>
+          </Grid>
         </Grid>
       );
     }
@@ -302,9 +294,9 @@ export default function ObjectiveContainer({}: Props): ReactElement {
         openModal={openModal}
         closeModal={handleCloseEmailModal}
         edit={edit}
+        objectives={objectives}
         objectiveData={objectiveEdit}
         onCloseEdit={handleEdit}
-        objectivePercentage={objectivePercentage}
       />
     </>
   );

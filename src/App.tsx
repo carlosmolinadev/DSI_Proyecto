@@ -10,6 +10,8 @@ import ReactNotification from "react-notifications-component";
 import "react-notifications-component/dist/theme.css";
 import Evaluation from "./evaluation/Evaluation";
 import Home from "./dashboard/Home";
+import EvaluationContainer from "./evaluation/EvaluationContainer";
+import SupervisorModule from "./supervisor/SupervisorModule";
 
 function App() {
   return (
@@ -26,13 +28,18 @@ function App() {
         </Route>
 
         <Route exact path="/objetivos">
-          <Header />
+          <Header module="objetivos" />
           <ObjectiveContainer />
         </Route>
 
         <Route exact path="/evaluacion">
-          <Header />
-          <Evaluation user={"MM18054"} />
+          <Header module="evaluacion" />
+          <EvaluationContainer />
+        </Route>
+
+        <Route exact path="/gestion-personas">
+          <Header module="gestion" />
+          <SupervisorModule />
         </Route>
       </Switch>
     </>
