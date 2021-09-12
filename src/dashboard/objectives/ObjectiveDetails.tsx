@@ -115,8 +115,10 @@ export default function ObjectiveDetails({
   // Cuando se ingresa un nuevo objetivo se envia a la base de datos
   const onSubmit = (data: any) => {
     const user = sessionStorage.getItem("user");
-    const { categoria, meta, descripcion, peso: tempPeso } = data;
+    const { categoria, meta: tempMeta, descripcion, peso: tempPeso } = data;
     const peso = parseInt(tempPeso);
+    const meta = parseInt(tempMeta);
+
     const id = uuid();
     let objetivos = [...objectives];
     let currentWeight = 0;
@@ -127,6 +129,7 @@ export default function ObjectiveDetails({
       peso,
       id,
       logro: 0,
+      logro_supervisor: 0,
       comentario_colaborador: "",
       comentario_supervisor: "",
     };
@@ -162,6 +165,7 @@ export default function ObjectiveDetails({
             .set(
               {
                 objetivos,
+                usuario: user,
               },
               { merge: true }
             );
@@ -180,6 +184,7 @@ export default function ObjectiveDetails({
             .set(
               {
                 objetivos,
+                usuario: user,
               },
               { merge: true }
             );

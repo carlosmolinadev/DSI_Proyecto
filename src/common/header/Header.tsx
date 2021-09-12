@@ -28,9 +28,11 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface Props {}
+interface Props {
+  module?: string;
+}
 
-export default function Header({}: Props): ReactElement {
+export default function Header({ module }: Props): ReactElement {
   const classes = useStyles();
   const history = useHistory();
 
@@ -39,6 +41,11 @@ export default function Header({}: Props): ReactElement {
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("validate");
     sessionStorage.removeItem("username");
+    sessionStorage.removeItem("employeeId");
+    sessionStorage.removeItem("fullname");
+    sessionStorage.removeItem("mode");
+    sessionStorage.removeItem("role");
+    sessionStorage.removeItem("supervisorId");
     history.push("/");
   };
 
@@ -49,13 +56,38 @@ export default function Header({}: Props): ReactElement {
     setFullName(name);
   }, [fullname]);
 
+  const showModuleName = () => {
+    if (module === "gestion") {
+      return (
+        <Typography style={{ flex: 1, marginLeft: 10 }}>
+          {`GESTION DE PERSONAL`}
+        </Typography>
+      );
+    }
+    if (module === "evaluacion") {
+      return (
+        <Typography style={{ flex: 1, marginLeft: 10 }}>EVALUACION</Typography>
+      );
+    }
+    if (module === "objetivos") {
+      return (
+        <Typography style={{ flex: 1, marginLeft: 10 }}>
+          GESTION DE OBJETIVOS
+        </Typography>
+      );
+    } else {
+      return (
+        <Typography style={{ flex: 1, marginLeft: 10 }}>
+          {`Bienvenid@ ${fullname}`}
+        </Typography>
+      );
+    }
+  };
   return (
     <div className={classes.root}>
       <AppBar position="fixed">
         <Toolbar className={classes.toolbar}>
-          <Typography style={{ flex: 1, marginLeft: 10 }}>
-            {`Bienvenid@ ${fullname}`}
-          </Typography>
+          {showModuleName()}
 
           <IconButton>
             <LibraryBooksIcon style={{ color: "white", marginRight: 8 }} />

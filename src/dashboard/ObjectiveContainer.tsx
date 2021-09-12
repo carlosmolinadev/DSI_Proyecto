@@ -119,6 +119,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
 
   const saveEvaluation = () => {
     const user = sessionStorage.getItem("user");
+    const supervisorId = sessionStorage.getItem("supervisorId");
     db.collection("perfil")
       .doc(user!)
       .collection("evaluaciones")
@@ -221,13 +222,15 @@ export default function ObjectiveContainer({}: Props): ReactElement {
             Los objetivos han sido ingresados, esperando aprobación por parte
             del supervisor.
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => history.push("/inicio")}
-          >
-            Continuar
-          </Button>
+          <Grid container justify="center" style={{ marginTop: 15 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => history.push("/inicio")}
+            >
+              Continuar
+            </Button>
+          </Grid>
         </Grid>
       );
     }
