@@ -89,11 +89,11 @@ export default function Header({ module }: Props): ReactElement {
         <Toolbar className={classes.toolbar}>
           {showModuleName()}
 
-          <IconButton>
+          <IconButton onClick={() => history.push("/inicio")}>
             <LibraryBooksIcon style={{ color: "white", marginRight: 8 }} />
           </IconButton>
 
-          <IconButton>
+          <IconButton onClick={() => history.push("/inicio")}>
             <AccountCircleIcon
               style={{ color: "white", marginRight: 8 }}
               aria-label="menu"

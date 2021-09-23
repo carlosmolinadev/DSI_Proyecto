@@ -28,7 +28,7 @@ export default function EvaluationContainer({}: Props): ReactElement {
     }
   };
 
-  console.log(user);
+  console.log(objectives);
 
   useEffect(() => {
     const mode = sessionStorage.getItem("mode");

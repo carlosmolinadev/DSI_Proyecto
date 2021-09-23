@@ -10,4 +10,5 @@ export enum EvaluationState {
   Aprobada = "aprobada",
   Completa = "evaluacion_completa",
   Retroalimentacion = "retroalimentacion",
+  IngresarObjetivos = "ingresar_objetivos",
 }

@@ -122,7 +122,7 @@ export default function ObjectiveDetails({
     const id = uuid();
     let objetivos = [...objectives];
     let currentWeight = 0;
-    const objective = {
+    const objective: Objective = {
       categoria,
       meta,
       descripcion,
@@ -132,11 +132,27 @@ export default function ObjectiveDetails({
       logro_supervisor: 0,
       comentario_colaborador: "",
       comentario_supervisor: "",
+      estado_aprobacion: "sin_revisar",
+      razon_denegar: "",
     };
 
-    objetivos.forEach((item) => (currentWeight += item.peso));
+    objetivos.forEach((item) => {
+      currentWeight += item.peso;
 
-    if (currentWeight + peso > 100) {
+      let prevPeso = 0;
+      if (objectiveData !== null) {
+        if (item.id === objectiveData.id) {
+          prevPeso = item.peso;
+          currentWeight = currentWeight - prevPeso;
+        }
+      }
+    });
+
+    currentWeight = currentWeight + peso;
+
+    console.log(currentWeight);
+
+    if (currentWeight > 100) {
       notificationFunction(
         "El objetivo no ha podido ser agregado",
         "El objetivo sobrepasa el 100% del peso",

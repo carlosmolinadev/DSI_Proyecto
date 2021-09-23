@@ -12,6 +12,7 @@ import Evaluation from "./evaluation/Evaluation";
 import Home from "./dashboard/Home";
 import EvaluationContainer from "./evaluation/EvaluationContainer";
 import SupervisorModule from "./supervisor/SupervisorModule";
+import Results from "./results/Results";
 
 function App() {
   return (
@@ -40,6 +41,11 @@ function App() {
         <Route exact path="/gestion-personas">
           <Header module="gestion" />
           <SupervisorModule />
+        </Route>
+
+        <Route exact path="/resultados">
+          <Header module="resultados" />
+          <Results />
         </Route>
       </Switch>
     </>
