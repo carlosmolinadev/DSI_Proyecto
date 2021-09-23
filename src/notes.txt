@@ -1,3 +1,6 @@
-Peso va en porcentaje
 
-Agregar en la parte final el resultado total obtenido
+
+Agregar el peso para la evaluacion
+
+
+El resultado no debe estar disponible si no tiene evaluacion pendiente

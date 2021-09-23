@@ -15,7 +15,6 @@ import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import VisibilityIcon from "@material-ui/icons/Visibility";
 import { db } from "../firebase/firebase";
 import { useHistory } from "react-router";
 import { Employee } from "../interface/generic";
@@ -46,19 +45,21 @@ export default function SupervisorModule({}: Props): ReactElement {
   useEffect(() => {
     const user = sessionStorage.getItem("user");
 
-    if (user !== null) {
-      db.collection("perfil")
-        .doc(user)
-        .get()
-        .then((data) => {
-          if (data.exists) {
-            if (data.data() !== undefined) {
-              if (data.data()!.colaboradores !== undefined) {
-                setEmployees(data.data()!.colaboradores);
-              }
+    const getEmployees = async (user: string) => {
+      const data = await db.collection("perfil").doc(user);
+      data.onSnapshot((onSnapshot) => {
+        if (onSnapshot.exists) {
+          if (onSnapshot.data() !== undefined) {
+            if (onSnapshot.data()!.colaboradores !== undefined) {
+              setEmployees(onSnapshot.data()!.colaboradores);
             }
           }
-        });
+        }
+      });
+    };
+
+    if (user !== null) {
+      getEmployees(user);
     }
   }, []);
 

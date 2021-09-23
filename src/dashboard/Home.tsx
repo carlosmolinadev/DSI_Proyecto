@@ -2,7 +2,6 @@ import { Button, Grid } from "@material-ui/core";
 import React, { ReactElement, useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import { db } from "../firebase/firebase";
-import { Mode } from "../interface/enums";
 
 interface Props {}
 
@@ -29,11 +28,6 @@ export default function Home({}: Props): ReactElement {
     });
   }, []);
 
-  const realizarAutoevaluacion = () => {
-    sessionStorage.setItem("mode", Mode.Evaluar);
-    history.push("/evaluacion");
-  };
-
   return (
     <>
       <Grid container justify="center" style={{ marginTop: 120 }}>
@@ -43,16 +37,16 @@ export default function Home({}: Props): ReactElement {
           style={{ marginLeft: 10, marginRight: 10 }}
           onClick={() => history.push("/objetivos")}
         >
-          Agregar Objetivos
+          Gestionar mis autoevaluaciones
         </Button>
 
         <Button
           color="primary"
           variant="contained"
           style={{ marginLeft: 10, marginRight: 10 }}
-          onClick={realizarAutoevaluacion}
+          onClick={() => history.push("/resultados")}
         >
-          Realizar Autoevaluación
+          Resultados
         </Button>
 
         {profile?.rol === "supervisor" && (

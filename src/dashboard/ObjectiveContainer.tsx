@@ -20,7 +20,8 @@ import EditIcon from "@material-ui/icons/Edit";
 import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
 import { useHistory } from "react-router-dom";
 import { db } from "../firebase/firebase";
-import { Objective } from "../interface/generic";
+import { Employee, Objective } from "../interface/generic";
+import { EvaluationState, Mode } from "../interface/enums";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -53,7 +54,10 @@ export default function ObjectiveContainer({}: Props): ReactElement {
 
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [objectiveEdit, setObjectiveEdit] = useState<Objective | null>(null);
-  const [evaluationCompleted, setEvaluationCompleted] = useState(false);
+  const [evaluationState, setEvaluationState] = useState<EvaluationState>(
+    EvaluationState.NoIngresada
+  );
+  const [completeEvaluation, setCompleteEvaluation] = useState(false);
 
   const [edit, setEdit] = useState(false);
 
@@ -70,6 +74,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
 
   useEffect(() => {
     const user = sessionStorage.getItem("user");
+
     const getObjectives = async () => {
       if (user !== null) {
         db.collection("perfil")
@@ -80,6 +85,10 @@ export default function ObjectiveContainer({}: Props): ReactElement {
             if (snapshot.exists) {
               const data = snapshot.data();
               setObjectives(data?.objetivos);
+
+              if (data?.objetivos.length > 0) {
+                setEvaluationState(EvaluationState.IngresarObjetivos);
+              }
             }
           });
       }
@@ -93,7 +102,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
         .get()
         .then((data) => {
           if (data.exists) {
-            setEvaluationCompleted(data.data()?.isCompleted);
+            setEvaluationState(data.data()?.isCompleted);
           }
         });
     };
@@ -103,6 +112,24 @@ export default function ObjectiveContainer({}: Props): ReactElement {
 
     return () => {};
   }, []);
+
+  useEffect(() => {
+    if (objectives !== []) {
+      const objectivesTotal = objectives.length;
+      let approvedItems = 0;
+      objectives.forEach((item) => {
+        if (item.estado_aprobacion === "aprobado") {
+          approvedItems = approvedItems + 1;
+        }
+      });
+
+      if (approvedItems === objectivesTotal) {
+        setCompleteEvaluation(true);
+      } else {
+        setCompleteEvaluation(false);
+      }
+    }
+  }, [objectives]);
 
   const deleteItem = (id: string) => {
     const user = sessionStorage.getItem("user");
@@ -120,18 +147,43 @@ export default function ObjectiveContainer({}: Props): ReactElement {
   const saveEvaluation = () => {
     const user = sessionStorage.getItem("user");
     const supervisorId = sessionStorage.getItem("supervisorId");
-    db.collection("perfil")
-      .doc(user!)
-      .collection("evaluaciones")
-      .doc("2021")
-      .set(
-        {
-          eval_realizada: true,
-        },
-        { merge: true }
-      );
 
-    setEvaluationCompleted(true);
+    if (supervisorId !== null) {
+      db.collection("perfil")
+        .doc(supervisorId)
+        .get()
+        .then((item) => {
+          if (item.exists) {
+            let colaboradores: Employee[] = item.data()?.colaboradores;
+
+            if (colaboradores !== undefined) {
+              colaboradores.forEach((item, index) => {
+                if (item.id === user) {
+                  const foundIndex = index;
+                  colaboradores[foundIndex] = {
+                    ...item,
+                    estado: EvaluationState.ObjetivosIngresados,
+                  };
+                }
+              });
+            }
+
+            db.collection("perfil").doc(supervisorId).set(
+              {
+                colaboradores,
+              },
+              { merge: true }
+            );
+          }
+        });
+    }
+
+    setEvaluationState(EvaluationState.ObjetivosIngresados);
+  };
+
+  const realizarAutoevaluacion = () => {
+    sessionStorage.setItem("mode", Mode.Evaluar);
+    history.push("/evaluacion");
   };
 
   const editObjective = (objective: Objective) => {
@@ -170,10 +222,12 @@ export default function ObjectiveContainer({}: Props): ReactElement {
               <TableHead>
                 <TableRow>
                   <TableCell>Categoría</TableCell>
-                  <TableCell align="right">Meta</TableCell>
-                  <TableCell align="right">Descripción del objetivo</TableCell>
-                  <TableCell align="right">Peso%</TableCell>
-                  <TableCell align="right"></TableCell>
+                  <TableCell align="center">Meta</TableCell>
+                  <TableCell align="center">Descripción del objetivo</TableCell>
+                  <TableCell align="center">Peso%</TableCell>
+                  <TableCell align="center">Estado</TableCell>
+                  <TableCell align="center">Razon</TableCell>
+                  <TableCell align="center"></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -185,11 +239,18 @@ export default function ObjectiveContainer({}: Props): ReactElement {
                     >
                       {row.categoria.replaceAll("_", " ")}
                     </TableCell>
-                    <TableCell align="right">{row.meta}</TableCell>
-                    <TableCell align="right" style={{ width: 200 }}>
+                    <TableCell align="center">{row.meta}</TableCell>
+                    <TableCell align="center" style={{ width: 200 }}>
                       {row.descripcion}
                     </TableCell>
-                    <TableCell align="right">{row.peso}</TableCell>
+                    <TableCell align="center">{row.peso}</TableCell>
+                    <TableCell
+                      align="center"
+                      style={{ textTransform: "capitalize" }}
+                    >
+                      {row.estado_aprobacion.replaceAll("_", " ")}
+                    </TableCell>
+                    <TableCell align="center">{row.razon_denegar}</TableCell>
                     <TableCell>
                       <Grid container justify="center">
                         <Grid item>
@@ -215,7 +276,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
   };
 
   const handleView = () => {
-    if (evaluationCompleted === true) {
+    if (evaluationState === EvaluationState.ObjetivosIngresados) {
       return (
         <Grid>
           <Typography>
@@ -235,7 +296,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
       );
     }
 
-    if (objectives.length === 0) {
+    if (evaluationState === EvaluationState.NoIngresada) {
       return (
         <Grid>
           <Grid>
@@ -259,29 +320,41 @@ export default function ObjectiveContainer({}: Props): ReactElement {
       );
     }
 
-    return (
-      <>
-        {showTable()}
-        <Grid container justify="center" className={classes.addButton}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={ingresarObjetivo}
-          >
-            Agregar Objetivo
-          </Button>
+    if (evaluationState === EvaluationState.IngresarObjetivos) {
+      return (
+        <>
+          {showTable()}
+          <Grid container justify="center" className={classes.addButton}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={ingresarObjetivo}
+            >
+              Agregar Objetivo
+            </Button>
 
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={saveEvaluation}
-            style={{ marginLeft: 20, marginRight: 20 }}
-          >
-            Guardar evaluación
-          </Button>
-        </Grid>
-      </>
-    );
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={saveEvaluation}
+              style={{ marginLeft: 20, marginRight: 20 }}
+            >
+              Enviar objetivos
+            </Button>
+
+            <Button
+              color="primary"
+              variant="contained"
+              onClick={realizarAutoevaluacion}
+              style={{ marginLeft: 10, marginRight: 10 }}
+              disabled={!completeEvaluation}
+            >
+              Realizar Autoevaluación
+            </Button>
+          </Grid>
+        </>
+      );
+    }
   };
 
   return (

@@ -8,6 +8,8 @@ export interface Objective {
   logro_supervisor: number;
   comentario_colaborador: string;
   comentario_supervisor: string;
+  estado_aprobacion: "sin_revisar" | "aprobado" | "denegado";
+  razon_denegar: string;
 }
 
 export interface Employee {
