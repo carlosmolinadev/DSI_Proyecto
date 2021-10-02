@@ -60,20 +60,57 @@ export default function Evaluation({
 }: Props): ReactElement {
   const classes = useStyles();
   const history = useHistory();
-  const [disableInputs, setDisableInputs] = useState(-1);
-  const [disableButtons, setDisableButtons] = useState(-1);
-  const [comentario_colaborador, setComentario_colaborador] = useState("");
-  const [comentario_supervisor, setComentario_supervisor] = useState("");
+
   const [razon_denegar, SetRazon_denegar] = useState("");
-  const [logro, setLogro] = useState(0);
-  const [logro_supervisor, setLogro_supervisor] = useState(0);
+  const [tempObjectives, setTempObjectives] = useState<Objective[]>([
+    ...objectives,
+  ]);
 
-  const disableInput = (index: number) => {
-    setDisableInputs(index);
-  };
+  const setInput = (
+    id: string,
+    rol: string,
+    type: "comentario" | "logro",
+    input: string
+  ) => {
+    let objetivos = [...objectives];
+    let indexFound = 0;
+    objetivos.forEach((item, index) => {
+      if (item.id === id) {
+        indexFound = index;
+      }
+    });
 
-  const disableButton = (index: number) => {
-    setDisableButtons(index);
+    const objetivo = objetivos[indexFound];
+
+    if (rol === "empleado") {
+      if (type === "comentario") {
+        objetivos[indexFound] = {
+          ...objetivo,
+          comentario_colaborador: input === undefined ? "" : input,
+        };
+      } else {
+        objetivos[indexFound] = {
+          ...objetivo,
+          logro: input === undefined ? 0 : parseInt(input),
+        };
+      }
+    }
+
+    if (rol === "supervisor") {
+      if (type === "comentario") {
+        objetivos[indexFound] = {
+          ...objetivo,
+          comentario_supervisor: input === undefined ? "" : input,
+        };
+      } else {
+        objetivos[indexFound] = {
+          ...objetivo,
+          logro_supervisor: input === undefined ? 0 : parseInt(input),
+        };
+      }
+    }
+
+    setTempObjectives(objetivos);
   };
 
   const aprobarDenegarSolicitud = (
@@ -123,42 +160,18 @@ export default function Evaluation({
     SetRazon_denegar("");
   };
 
-  const submit = (
-    id: string,
-    comentario_colaborador: string,
-    logro: number
-  ) => {
-    setDisableButtons(-1);
-    setDisableInputs(-1);
-
-    const objetivos = [...objectives];
-
-    objetivos.forEach((item: Objective, i) => {
-      if (item.id === id) {
-        if (role === "empleado") {
-          objetivos[i] = { ...item, comentario_colaborador, logro };
-        } else {
-          objetivos[i] = { ...item, comentario_supervisor, logro_supervisor };
-        }
-      }
-    });
-
+  const sendEvaluation = (role: string, colaboradorId: string) => {
     db.collection("perfil")
       .doc(evaluationOwner)
       .collection("evaluaciones")
       .doc("2021")
       .set(
         {
-          objetivos,
+          objetivos: tempObjectives,
         },
         { merge: true }
       );
 
-    setComentario_colaborador("");
-    setLogro(0);
-  };
-
-  const sendEvaluation = (role: string, colaboradorId: string) => {
     if (role === "empleado") {
       db.collection("perfil")
         .doc(evaluationOwner)
@@ -336,11 +349,11 @@ export default function Evaluation({
     } else {
       return (
         <>
-          {objectives.map((item, index) => (
+          {objectives.map((item) => (
             <Grid item key={item.id}>
-              <Paper style={{ padding: 20, margin: 20 }}>
-                <Grid container direction="column">
-                  <Grid container direction="column">
+              <Paper style={{ padding: 20, margin: 10 }}>
+                <Grid container justify="space-between">
+                  <Grid>
                     <Typography
                       style={{
                         textTransform: "capitalize",
@@ -356,7 +369,7 @@ export default function Evaluation({
                     </Typography>
                   </Grid>
 
-                  <Grid container direction="column">
+                  <Grid>
                     <Typography
                       style={{
                         textTransform: "capitalize",
@@ -372,125 +385,145 @@ export default function Evaluation({
                     </Typography>
                   </Grid>
 
-                  <Typography style={{ marginBottom: 10 }}>
-                    Meta: {item.meta}
-                  </Typography>
+                  <Grid>
+                    <Typography
+                      style={{
+                        textTransform: "capitalize",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Meta.
+                    </Typography>
+                    <Typography
+                      style={{ textTransform: "capitalize", marginBottom: 10 }}
+                    >
+                      {item.meta}
+                    </Typography>
+                  </Grid>
 
-                  <Typography style={{ marginBottom: 10 }}>
-                    Peso: {item.meta}
-                  </Typography>
-
-                  <Grid
-                    container
-                    justify="center"
-                    className={classes.formControl}
-                  >
-                    <FormControl>
-                      <TextField
-                        className={classes.input}
-                        label="Logro"
-                        variant="outlined"
-                        type="number"
-                        defaultValue={item.logro === 0 ? null : item.logro}
-                        name="logro"
-                        onChange={(e) => setLogro(parseInt(e.target.value))}
-                        disabled={
-                          index === disableInputs && role === "empleado"
-                            ? false
-                            : true
-                        }
-                      />
-                    </FormControl>
+                  <Grid>
+                    <Typography
+                      style={{
+                        textTransform: "capitalize",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Peso.
+                    </Typography>
+                    <Typography
+                      style={{ textTransform: "capitalize", marginBottom: 10 }}
+                    >
+                      {item.peso}
+                    </Typography>
                   </Grid>
 
                   <Grid
                     container
-                    justify="center"
-                    className={classes.formControl}
+                    justify="space-between"
+                    style={{ marginTop: 10 }}
                   >
-                    <FormControl>
-                      <TextField
-                        className={classes.input}
-                        label="Comentarios"
-                        variant="outlined"
-                        name="comentarios"
-                        defaultValue={
-                          item.comentario_colaborador === ""
-                            ? null
-                            : item.comentario_colaborador
-                        }
-                        onChange={(e) =>
-                          setComentario_colaborador(e.target.value)
-                        }
-                        multiline
-                        disabled={
-                          index === disableInputs && role === "empleado"
-                            ? false
-                            : true
-                        }
-                      />
-                    </FormControl>
+                    <Grid item className={classes.formControl}>
+                      <FormControl>
+                        <TextField
+                          className={classes.input}
+                          label="Logro"
+                          variant="outlined"
+                          type="number"
+                          defaultValue={item.logro === 0 ? null : item.logro}
+                          name="logro"
+                          onChange={(e) =>
+                            setInput(
+                              item.id,
+                              "empleado",
+                              "logro",
+                              e.target.value
+                            )
+                          }
+                          disabled={role === "empleado" ? false : true}
+                        />
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item className={classes.formControl}>
+                      <FormControl>
+                        <TextField
+                          className={classes.input}
+                          label="Comentarios"
+                          variant="outlined"
+                          name="comentarios"
+                          defaultValue={
+                            item.comentario_colaborador === ""
+                              ? null
+                              : item.comentario_colaborador
+                          }
+                          onChange={(e) =>
+                            setInput(
+                              item.id,
+                              "empleado",
+                              "comentario",
+                              e.target.value
+                            )
+                          }
+                          multiline
+                          disabled={role === "empleado" ? false : true}
+                        />
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item className={classes.formControl}>
+                      <FormControl>
+                        <TextField
+                          className={classes.input}
+                          label="Evaluación de logro"
+                          variant="outlined"
+                          type="number"
+                          defaultValue={
+                            item.logro_supervisor === 0
+                              ? null
+                              : item.logro_supervisor
+                          }
+                          name="logro"
+                          onChange={(e) =>
+                            setInput(
+                              item.id,
+                              "supervisor",
+                              "logro",
+                              e.target.value
+                            )
+                          }
+                          disabled={role === "supervisor" ? false : true}
+                        />
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item className={classes.formControl}>
+                      <FormControl>
+                        <TextField
+                          className={classes.input}
+                          label="Retroalimentación"
+                          variant="outlined"
+                          name="comentarios"
+                          defaultValue={
+                            item.comentario_supervisor === ""
+                              ? null
+                              : item.comentario_supervisor
+                          }
+                          onChange={(e) =>
+                            setInput(
+                              item.id,
+                              "supervisor",
+                              "comentario",
+                              e.target.value
+                            )
+                          }
+                          multiline
+                          disabled={role === "supervisor" ? false : true}
+                        />
+                      </FormControl>
+                    </Grid>
                   </Grid>
 
-                  <Grid
-                    container
-                    justify="center"
-                    className={classes.formControl}
-                  >
-                    <FormControl>
-                      <TextField
-                        className={classes.input}
-                        label="Evaluación de logro"
-                        variant="outlined"
-                        type="number"
-                        defaultValue={
-                          item.logro_supervisor === 0
-                            ? null
-                            : item.logro_supervisor
-                        }
-                        name="logro"
-                        onChange={(e) =>
-                          setLogro_supervisor(parseInt(e.target.value))
-                        }
-                        disabled={
-                          index === disableInputs && role === "supervisor"
-                            ? false
-                            : true
-                        }
-                      />
-                    </FormControl>
-                  </Grid>
-
-                  <Grid
-                    container
-                    justify="center"
-                    className={classes.formControl}
-                  >
-                    <FormControl>
-                      <TextField
-                        className={classes.input}
-                        label="Retroalimentación"
-                        variant="outlined"
-                        name="comentarios"
-                        defaultValue={
-                          item.comentario_colaborador === ""
-                            ? null
-                            : item.comentario_supervisor
-                        }
-                        onChange={(e) =>
-                          setComentario_supervisor(e.target.value)
-                        }
-                        multiline
-                        disabled={
-                          index === disableInputs && role === "supervisor"
-                            ? false
-                            : true
-                        }
-                      />
-                    </FormControl>
-                  </Grid>
-
-                  <Grid container justify="center">
+                  {/* <Grid item justify="center">
                     {disableButtons === -1 || disableInputs !== index ? (
                       <Button
                         variant="contained"
@@ -513,7 +546,7 @@ export default function Evaluation({
                         Guardar
                       </Button>
                     )}
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Paper>
             </Grid>

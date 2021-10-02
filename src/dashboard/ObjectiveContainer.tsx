@@ -55,7 +55,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [objectiveEdit, setObjectiveEdit] = useState<Objective | null>(null);
   const [evaluationState, setEvaluationState] = useState<EvaluationState>(
-    EvaluationState.NoIngresada
+    EvaluationState.IngresarObjetivos
   );
   const [completeEvaluation, setCompleteEvaluation] = useState(false);
 
@@ -84,10 +84,17 @@ export default function ObjectiveContainer({}: Props): ReactElement {
           .onSnapshot((snapshot) => {
             if (snapshot.exists) {
               const data = snapshot.data();
-              setObjectives(data?.objetivos);
 
-              if (data?.objetivos.length > 0) {
+              if (data?.objetivos === undefined) {
+                setObjectives([]);
+              } else {
+                setObjectives(data?.objetivos);
+              }
+
+              if (objectives.length > 0) {
                 setEvaluationState(EvaluationState.IngresarObjetivos);
+              } else {
+                setEvaluationState(EvaluationState.NoIngresada);
               }
             }
           });
@@ -111,7 +118,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
     setEvaluationComplete();
 
     return () => {};
-  }, []);
+  }, [objectives.length]);
 
   useEffect(() => {
     if (objectives !== []) {

@@ -28,8 +28,6 @@ export default function EvaluationContainer({}: Props): ReactElement {
     }
   };
 
-  console.log(objectives);
-
   useEffect(() => {
     const mode = sessionStorage.getItem("mode");
     if (mode !== null) {
