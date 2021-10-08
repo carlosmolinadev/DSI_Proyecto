@@ -229,6 +229,7 @@ export default function Evaluation({
           },
           { merge: true }
         );
+      history.goBack();
     }
   };
 
