@@ -12,13 +12,16 @@ export default function EvaluationContainer({}: Props): ReactElement {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [user, setUser] = useState<string | null>(null);
   const [role, setRole] = useState("colaborador");
+  const [evaluacionActual, _] = useState(
+    sessionStorage.getItem("evaluacionActual")
+  );
 
   const getObjectives = async (user: string | null) => {
-    if (user !== null) {
+    if (user !== null && evaluacionActual !== null) {
       db.collection("perfil")
         .doc(user)
         .collection("evaluaciones")
-        .doc("2021")
+        .doc(evaluacionActual)
         .onSnapshot((snapshot) => {
           if (snapshot.exists) {
             const data = snapshot.data();
@@ -77,6 +80,7 @@ export default function EvaluationContainer({}: Props): ReactElement {
             mode={mode}
             evaluationOwner={user}
             role={role}
+            evaluationYear={evaluacionActual !== null ? evaluacionActual : ""}
           />
         </Grid>
       )}

@@ -4,3 +4,10 @@ Agregar el peso para la evaluacion
 
 
 El resultado no debe estar disponible si no tiene evaluacion pendiente
+
+
+Ingresos
+Usuario // Fecha // Hora
+
+
+

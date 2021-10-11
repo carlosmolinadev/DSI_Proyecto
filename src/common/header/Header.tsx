@@ -46,6 +46,7 @@ export default function Header({ module }: Props): ReactElement {
     sessionStorage.removeItem("mode");
     sessionStorage.removeItem("role");
     sessionStorage.removeItem("supervisorId");
+    sessionStorage.removeItem("evaluacionActual");
     history.push("/");
   };
 
@@ -67,6 +68,16 @@ export default function Header({ module }: Props): ReactElement {
     if (module === "evaluacion") {
       return (
         <Typography style={{ flex: 1, marginLeft: 10 }}>EVALUACION</Typography>
+      );
+    }
+    if (module === "historial") {
+      return (
+        <Typography style={{ flex: 1, marginLeft: 10 }}>HISTORIAL</Typography>
+      );
+    }
+    if (module === "resultados") {
+      return (
+        <Typography style={{ flex: 1, marginLeft: 10 }}>RESULTADOS</Typography>
       );
     }
     if (module === "objetivos") {

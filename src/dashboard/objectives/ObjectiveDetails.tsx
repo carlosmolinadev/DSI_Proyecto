@@ -30,6 +30,7 @@ interface Props {
   objectives: Objective[];
   edit: boolean;
   onCloseEdit: () => void;
+  evaluacionActual: null | string;
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -77,6 +78,7 @@ export default function ObjectiveDetails({
   objectives,
   edit,
   onCloseEdit,
+  evaluacionActual,
 }: Props): ReactElement {
   const classes = useStyles();
   //Style for the modal
@@ -150,8 +152,6 @@ export default function ObjectiveDetails({
 
     currentWeight = currentWeight + peso;
 
-    console.log(currentWeight);
-
     if (currentWeight > 100) {
       notificationFunction(
         "El objetivo no ha podido ser agregado",
@@ -174,42 +174,46 @@ export default function ObjectiveDetails({
             objetivos[indexFound] = objective;
           }
 
-          db.collection("perfil")
-            .doc(user)
-            .collection("evaluaciones")
-            .doc("2021")
-            .set(
-              {
-                objetivos,
-                usuario: user,
-              },
-              { merge: true }
+          if (evaluacionActual !== null) {
+            db.collection("perfil")
+              .doc(user)
+              .collection("evaluaciones")
+              .doc(evaluacionActual)
+              .set(
+                {
+                  objetivos,
+                  usuario: user,
+                },
+                { merge: true }
+              );
+            notificationFunction(
+              "Objetivo modificado",
+              "El objetivo ha sido modificado exitosamente",
+              "success",
+              2000
             );
-          notificationFunction(
-            "Objetivo modificado",
-            "El objetivo ha sido modificado exitosamente",
-            "success",
-            2000
-          );
+          }
         } else {
           objetivos.push(objective);
-          db.collection("perfil")
-            .doc(user)
-            .collection("evaluaciones")
-            .doc("2021")
-            .set(
-              {
-                objetivos,
-                usuario: user,
-              },
-              { merge: true }
+          if (evaluacionActual !== null) {
+            db.collection("perfil")
+              .doc(user)
+              .collection("evaluaciones")
+              .doc(evaluacionActual)
+              .set(
+                {
+                  objetivos,
+                  usuario: user,
+                },
+                { merge: true }
+              );
+            notificationFunction(
+              "Objetivo ingresado",
+              "El objetivo ha sido ingresado exitosamente",
+              "success",
+              2000
             );
-          notificationFunction(
-            "Objetivo ingresado",
-            "El objetivo ha sido ingresado exitosamente",
-            "success",
-            2000
-          );
+          }
         }
         onCloseEdit();
         closeModal();

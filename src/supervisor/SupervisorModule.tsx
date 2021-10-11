@@ -64,22 +64,23 @@ export default function SupervisorModule({}: Props): ReactElement {
       });
     };
 
-    const test = async (user: string) => {
-      const data = await db
-        .collection("perfil")
-        .doc("EM06020")
-        .collection("evaluaciones")
-        .orderBy("year")
-        .get();
-      data.forEach((doc) => console.log(doc.data()));
-    };
-
-    test("EMMMSADASd");
-
     if (user !== null) {
       getEmployees(user);
     }
   }, []);
+
+  useEffect(() => {
+    if (employees !== null) {
+      const copyEmployee = [...employees];
+      const evaluationYear: { id: string; estado: string; anio: string }[] = [];
+
+      copyEmployee.forEach((item) => {
+        evaluationYear.push({ id: item.id, estado: item.estado, anio: "2021" });
+      });
+
+      setEvaluationYear(evaluationYear);
+    }
+  }, [employees?.length]);
 
   const yearList = [
     "2021",
@@ -94,12 +95,25 @@ export default function SupervisorModule({}: Props): ReactElement {
     "2030",
   ];
 
-  const manageEmployee = (id: string, fullname: string, mode: Mode) => {
+  const historialUser = (userId: string) => {
+    sessionStorage.setItem("historialUser", userId);
+    history.push("/historial");
+  };
+
+  const manageEmployee = (
+    id: string,
+    fullname: string,
+    mode: Mode,
+    evaluacionActual: string
+  ) => {
     sessionStorage.removeItem("employeeId");
     sessionStorage.removeItem("fullname");
 
     sessionStorage.setItem("employeeId", id);
     sessionStorage.setItem("fullname", fullname);
+
+    //Revisar que se deberia cambiar a evaluacionEmpleado
+    sessionStorage.setItem("evaluacionActual", evaluacionActual);
 
     if (mode === Mode.Retroalimentar) {
       sessionStorage.removeItem("mode");
@@ -126,6 +140,7 @@ export default function SupervisorModule({}: Props): ReactElement {
     }
     let employee: Employee = employeesCopy[0];
 
+    //Iterates using the copy employees and set state to en_proceso
     employeesCopy.forEach((item, index) => {
       if (item.id === id) {
         foundIndex = index;
@@ -133,6 +148,7 @@ export default function SupervisorModule({}: Props): ReactElement {
         employeesCopy[foundIndex] = {
           ...employee,
           estado: EvaluationState.EnProceso,
+          evaluacionActual: evaluationYear[foundIndex].anio,
         };
       }
     });
@@ -150,16 +166,23 @@ export default function SupervisorModule({}: Props): ReactElement {
         id: employee.id,
         objetivos: [],
         estado: EvaluationState.EnProceso,
-        year: evaluationForm.anio,
+        year: parseInt(evaluationForm.anio),
         fechaCreado: Date.now(),
       });
 
-    // db.collection("perfil").doc(user).set(
-    //   {
-    //     colaboradores: employeesCopy,
-    //   },
-    //   { merge: true }
-    // );
+    db.collection("perfil").doc(employee.id).set(
+      {
+        evaluacionActual: evaluationForm.anio,
+      },
+      { merge: true }
+    );
+
+    db.collection("perfil").doc(user).set(
+      {
+        colaboradores: employeesCopy,
+      },
+      { merge: true }
+    );
 
     notificationFunction(
       "Evaluación creada",
@@ -177,6 +200,8 @@ export default function SupervisorModule({}: Props): ReactElement {
     let evaluationState = [...evaluationYear];
     const anio = event.target.value as string;
     evaluationState[index] = { id, estado: "CREADO", anio };
+
+    console.log(evaluationState);
     setEvaluationYear(evaluationState);
   };
 
@@ -184,7 +209,8 @@ export default function SupervisorModule({}: Props): ReactElement {
     estado: string,
     id: string,
     nombre: string,
-    apellido: string
+    apellido: string,
+    evaluacionActual: string
   ) => {
     if (estado === EvaluationState.NoIngresada) {
       return (
@@ -207,7 +233,12 @@ export default function SupervisorModule({}: Props): ReactElement {
             variant="contained"
             color="primary"
             onClick={() =>
-              manageEmployee(id, `${nombre} ${apellido}`, Mode.Aprobar)
+              manageEmployee(
+                id,
+                `${nombre} ${apellido}`,
+                Mode.Aprobar,
+                evaluacionActual
+              )
             }
           >
             Aprobar Evaluacion
@@ -215,14 +246,22 @@ export default function SupervisorModule({}: Props): ReactElement {
         </Grid>
       );
     }
-    if (estado === EvaluationState.Completa) {
+    if (
+      estado === EvaluationState.Retroalimentacion ||
+      estado === EvaluationState.Evaluada
+    ) {
       return (
         <Grid item>
           <Button
             variant="contained"
             color="primary"
             onClick={() =>
-              manageEmployee(id, `${nombre} ${apellido}`, Mode.Retroalimentar)
+              manageEmployee(
+                id,
+                `${nombre} ${apellido}`,
+                Mode.Retroalimentar,
+                evaluacionActual
+              )
             }
           >
             Evaluar
@@ -235,7 +274,7 @@ export default function SupervisorModule({}: Props): ReactElement {
       return (
         <Grid item>
           <Button variant="contained" color="primary" disabled>
-            Crear
+            En proceso
           </Button>
         </Grid>
       );
@@ -256,6 +295,8 @@ export default function SupervisorModule({}: Props): ReactElement {
                 <TableCell>Colaborador</TableCell>
                 <TableCell>Cargo</TableCell>
                 <TableCell align="center">Asignar Evaluación</TableCell>
+                <TableCell>Año evaluado</TableCell>
+                <TableCell align="right"></TableCell>
                 <TableCell align="right"></TableCell>
               </TableRow>
             </TableHead>
@@ -284,14 +325,28 @@ export default function SupervisorModule({}: Props): ReactElement {
                         ))}
                       </Select>
                     </TableCell>
+                    <TableCell scope="row">{row.evaluacionActual}</TableCell>
                     <TableCell>
                       <Grid container justify="center">
                         {showButton(
                           row.estado,
                           row.id,
                           row.nombre,
-                          row.apellido
+                          row.apellido,
+                          row.evaluacionActual
                         )}
+                      </Grid>
+                    </TableCell>
+
+                    <TableCell>
+                      <Grid
+                        container
+                        justify="center"
+                        onClick={() => historialUser(row.id)}
+                      >
+                        <Button variant="contained" color="primary">
+                          Historial
+                        </Button>
                       </Grid>
                     </TableCell>
                   </TableRow>

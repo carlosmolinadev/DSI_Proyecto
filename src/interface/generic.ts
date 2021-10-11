@@ -18,4 +18,17 @@ export interface Employee {
   cargo: string;
   id: string;
   estado: string;
+  evaluacionActual: string;
+}
+
+export interface ObjectiveEntity {
+  objetivos: Objective[];
+  nombre: string;
+  apellido: string;
+  cargo: string;
+  id: string;
+  fechaCreado: number;
+  year: number;
+  resultado_colaborador: string;
+  resultado_supervisor: string;
 }

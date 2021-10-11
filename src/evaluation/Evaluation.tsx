@@ -21,6 +21,7 @@ interface Props {
   mode: Mode;
   evaluationOwner: string;
   role: string;
+  evaluationYear: string;
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -57,6 +58,7 @@ export default function Evaluation({
   mode,
   evaluationOwner,
   role,
+  evaluationYear,
 }: Props): ReactElement {
   const classes = useStyles();
   const history = useHistory();
@@ -72,7 +74,11 @@ export default function Evaluation({
     type: "comentario" | "logro",
     input: string
   ) => {
-    let objetivos = [...objectives];
+    let objetivos = [...tempObjectives];
+    if (tempObjectives.length === 0) {
+      objetivos = [...objectives];
+    }
+
     let indexFound = 0;
     objetivos.forEach((item, index) => {
       if (item.id === id) {
@@ -149,7 +155,7 @@ export default function Evaluation({
     db.collection("perfil")
       .doc(owner)
       .collection("evaluaciones")
-      .doc("2021")
+      .doc(evaluationYear)
       .set(
         {
           objetivos,
@@ -161,10 +167,11 @@ export default function Evaluation({
   };
 
   const sendEvaluation = (role: string, colaboradorId: string) => {
+    console.log(tempObjectives);
     db.collection("perfil")
       .doc(evaluationOwner)
       .collection("evaluaciones")
-      .doc("2021")
+      .doc(evaluationYear)
       .set(
         {
           objetivos: tempObjectives,
@@ -176,10 +183,10 @@ export default function Evaluation({
       db.collection("perfil")
         .doc(evaluationOwner)
         .collection("evaluaciones")
-        .doc("2021")
+        .doc(evaluationYear)
         .set(
           {
-            estado: EvaluationState.Completa,
+            estado: EvaluationState.Retroalimentacion,
           },
           { merge: true }
         );
@@ -200,7 +207,7 @@ export default function Evaluation({
                     const foundIndex = index;
                     colaboradores[foundIndex] = {
                       ...item,
-                      estado: EvaluationState.Completa,
+                      estado: EvaluationState.Evaluada,
                     };
                   }
                 });
@@ -222,10 +229,10 @@ export default function Evaluation({
       db.collection("perfil")
         .doc(evaluationOwner)
         .collection("evaluaciones")
-        .doc("2021")
+        .doc(evaluationYear)
         .set(
           {
-            estado: EvaluationState.Retroalimentacion,
+            estado: EvaluationState.Evaluada,
           },
           { merge: true }
         );
@@ -350,208 +357,213 @@ export default function Evaluation({
     } else {
       return (
         <>
-          {objectives.map((item) => (
-            <Grid item key={item.id}>
-              <Paper style={{ padding: 20, margin: 10 }}>
-                <Grid container justify="space-between">
-                  <Grid>
-                    <Typography
-                      style={{
-                        textTransform: "capitalize",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Categoría.
-                    </Typography>
-                    <Typography
-                      style={{ textTransform: "capitalize", marginBottom: 10 }}
-                    >
-                      {item.categoria.replaceAll("_", " ")}
-                    </Typography>
-                  </Grid>
-
-                  <Grid>
-                    <Typography
-                      style={{
-                        textTransform: "capitalize",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Descripción del objetivo.
-                    </Typography>
-                    <Typography
-                      style={{ textTransform: "capitalize", marginBottom: 10 }}
-                    >
-                      {item.descripcion}
-                    </Typography>
-                  </Grid>
-
-                  <Grid>
-                    <Typography
-                      style={{
-                        textTransform: "capitalize",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Meta.
-                    </Typography>
-                    <Typography
-                      style={{ textTransform: "capitalize", marginBottom: 10 }}
-                    >
-                      {item.meta}
-                    </Typography>
-                  </Grid>
-
-                  <Grid>
-                    <Typography
-                      style={{
-                        textTransform: "capitalize",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Peso.
-                    </Typography>
-                    <Typography
-                      style={{ textTransform: "capitalize", marginBottom: 10 }}
-                    >
-                      {item.peso}
-                    </Typography>
-                  </Grid>
-
-                  <Grid
-                    container
-                    justify="space-between"
-                    style={{ marginTop: 10 }}
-                  >
-                    <Grid item className={classes.formControl}>
-                      <FormControl>
-                        <TextField
-                          className={classes.input}
-                          label="Logro"
-                          variant="outlined"
-                          type="number"
-                          defaultValue={item.logro === 0 ? null : item.logro}
-                          name="logro"
-                          onChange={(e) =>
-                            setInput(
-                              item.id,
-                              "empleado",
-                              "logro",
-                              e.target.value
-                            )
-                          }
-                          disabled={role === "empleado" ? false : true}
-                        />
-                      </FormControl>
-                    </Grid>
-
-                    <Grid item className={classes.formControl}>
-                      <FormControl>
-                        <TextField
-                          className={classes.input}
-                          label="Comentarios"
-                          variant="outlined"
-                          name="comentarios"
-                          defaultValue={
-                            item.comentario_colaborador === ""
-                              ? null
-                              : item.comentario_colaborador
-                          }
-                          onChange={(e) =>
-                            setInput(
-                              item.id,
-                              "empleado",
-                              "comentario",
-                              e.target.value
-                            )
-                          }
-                          multiline
-                          disabled={role === "empleado" ? false : true}
-                        />
-                      </FormControl>
-                    </Grid>
-
-                    <Grid item className={classes.formControl}>
-                      <FormControl>
-                        <TextField
-                          className={classes.input}
-                          label="Evaluación de logro"
-                          variant="outlined"
-                          type="number"
-                          defaultValue={
-                            item.logro_supervisor === 0
-                              ? null
-                              : item.logro_supervisor
-                          }
-                          name="logro"
-                          onChange={(e) =>
-                            setInput(
-                              item.id,
-                              "supervisor",
-                              "logro",
-                              e.target.value
-                            )
-                          }
-                          disabled={role === "supervisor" ? false : true}
-                        />
-                      </FormControl>
-                    </Grid>
-
-                    <Grid item className={classes.formControl}>
-                      <FormControl>
-                        <TextField
-                          className={classes.input}
-                          label="Retroalimentación"
-                          variant="outlined"
-                          name="comentarios"
-                          defaultValue={
-                            item.comentario_supervisor === ""
-                              ? null
-                              : item.comentario_supervisor
-                          }
-                          onChange={(e) =>
-                            setInput(
-                              item.id,
-                              "supervisor",
-                              "comentario",
-                              e.target.value
-                            )
-                          }
-                          multiline
-                          disabled={role === "supervisor" ? false : true}
-                        />
-                      </FormControl>
-                    </Grid>
-                  </Grid>
-
-                  {/* <Grid item justify="center">
-                    {disableButtons === -1 || disableInputs !== index ? (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => {
-                          disableInput(index);
-                          disableButton(index);
+          <Grid container>
+            {objectives.map((item) => (
+              <Grid container justify="center" key={item.id}>
+                <Paper style={{ padding: 20, margin: 10, width: "80%" }}>
+                  <Grid container>
+                    <Grid item xs={3}>
+                      <Typography
+                        style={{
+                          textTransform: "capitalize",
+                          fontWeight: "bold",
                         }}
                       >
-                        Editar
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() =>
-                          submit(item.id, comentario_colaborador, logro)
-                        }
+                        Categoría.
+                      </Typography>
+                      <Typography
+                        style={{
+                          textTransform: "capitalize",
+                          marginBottom: 10,
+                        }}
                       >
-                        Guardar
-                      </Button>
-                    )}
-                  </Grid> */}
-                </Grid>
-              </Paper>
-            </Grid>
-          ))}
+                        {item.categoria.replaceAll("_", " ")}
+                      </Typography>
+                    </Grid>
+
+                    <Grid item xs={3}>
+                      <Typography
+                        style={{
+                          textTransform: "capitalize",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Descripción del objetivo.
+                      </Typography>
+                      <Typography
+                        style={{
+                          textTransform: "capitalize",
+                          marginBottom: 10,
+                        }}
+                      >
+                        {item.descripcion}
+                      </Typography>
+                    </Grid>
+
+                    <Grid item xs={3}>
+                      <Typography
+                        style={{
+                          textTransform: "capitalize",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Meta.
+                      </Typography>
+                      <Typography
+                        style={{
+                          textTransform: "capitalize",
+                          marginBottom: 10,
+                        }}
+                      >
+                        {item.meta}
+                      </Typography>
+                    </Grid>
+
+                    <Grid item xs={3}>
+                      <Typography
+                        style={{
+                          textTransform: "capitalize",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Peso.
+                      </Typography>
+                      <Typography
+                        style={{
+                          textTransform: "capitalize",
+                          marginBottom: 10,
+                        }}
+                      >
+                        {item.peso}
+                      </Typography>
+                    </Grid>
+
+                    <Grid container>
+                      <Grid
+                        item
+                        xs={3}
+                        style={{ marginTop: 10 }}
+                        className={classes.formControl}
+                      >
+                        <FormControl>
+                          <TextField
+                            className={classes.input}
+                            label="Logro"
+                            variant="outlined"
+                            type="number"
+                            defaultValue={item.logro === 0 ? null : item.logro}
+                            name="logro"
+                            onChange={(e) =>
+                              setInput(
+                                item.id,
+                                "empleado",
+                                "logro",
+                                e.target.value
+                              )
+                            }
+                            disabled={role === "empleado" ? false : true}
+                          />
+                        </FormControl>
+                      </Grid>
+
+                      <Grid
+                        item
+                        xs={3}
+                        style={{ marginTop: 10 }}
+                        className={classes.formControl}
+                      >
+                        <FormControl>
+                          <TextField
+                            className={classes.input}
+                            label="Comentarios"
+                            variant="outlined"
+                            name="comentarios"
+                            defaultValue={
+                              item.comentario_colaborador === ""
+                                ? null
+                                : item.comentario_colaborador
+                            }
+                            onChange={(e) =>
+                              setInput(
+                                item.id,
+                                "empleado",
+                                "comentario",
+                                e.target.value
+                              )
+                            }
+                            multiline
+                            disabled={role === "empleado" ? false : true}
+                          />
+                        </FormControl>
+                      </Grid>
+
+                      <Grid
+                        item
+                        xs={3}
+                        style={{ marginTop: 10 }}
+                        className={classes.formControl}
+                      >
+                        <FormControl>
+                          <TextField
+                            className={classes.input}
+                            label="Evaluación de logro"
+                            variant="outlined"
+                            type="number"
+                            defaultValue={
+                              item.logro_supervisor === 0
+                                ? null
+                                : item.logro_supervisor
+                            }
+                            name="logro"
+                            onChange={(e) =>
+                              setInput(
+                                item.id,
+                                "supervisor",
+                                "logro",
+                                e.target.value
+                              )
+                            }
+                            disabled={role === "supervisor" ? false : true}
+                          />
+                        </FormControl>
+                      </Grid>
+
+                      <Grid
+                        item
+                        xs={3}
+                        style={{ marginTop: 10 }}
+                        className={classes.formControl}
+                      >
+                        <FormControl>
+                          <TextField
+                            className={classes.input}
+                            label="Retroalimentación"
+                            variant="outlined"
+                            name="comentarios"
+                            defaultValue={
+                              item.comentario_supervisor === ""
+                                ? null
+                                : item.comentario_supervisor
+                            }
+                            onChange={(e) =>
+                              setInput(
+                                item.id,
+                                "supervisor",
+                                "comentario",
+                                e.target.value
+                              )
+                            }
+                            multiline
+                            disabled={role === "supervisor" ? false : true}
+                          />
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
 
           <Grid container justify="center">
             <Button

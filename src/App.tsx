@@ -13,6 +13,7 @@ import Home from "./dashboard/Home";
 import EvaluationContainer from "./evaluation/EvaluationContainer";
 import SupervisorModule from "./supervisor/SupervisorModule";
 import Results from "./results/Results";
+import Historial from "./common/Historial";
 
 function App() {
   return (
@@ -45,7 +46,12 @@ function App() {
 
         <Route exact path="/resultados">
           <Header module="resultados" />
-          <Results />
+          <Results estado="" />
+        </Route>
+
+        <Route exact path="/historial">
+          <Header module="historial" />
+          <Historial />
         </Route>
       </Switch>
     </>

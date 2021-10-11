@@ -22,6 +22,7 @@ import { useHistory } from "react-router-dom";
 import { db } from "../firebase/firebase";
 import { Employee, Objective } from "../interface/generic";
 import { EvaluationState, Mode } from "../interface/enums";
+import Results from "../results/Results";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -58,6 +59,9 @@ export default function ObjectiveContainer({}: Props): ReactElement {
     EvaluationState.IngresarObjetivos
   );
   const [completeEvaluation, setCompleteEvaluation] = useState(false);
+  const [evaluacionActual, setEvaluacionActual] = useState<string | null>(
+    sessionStorage.getItem("evaluacionActual")
+  );
 
   const [edit, setEdit] = useState(false);
 
@@ -76,11 +80,11 @@ export default function ObjectiveContainer({}: Props): ReactElement {
     const user = sessionStorage.getItem("user");
 
     const getObjectives = async () => {
-      if (user !== null) {
+      if (user !== null && evaluacionActual !== null) {
         db.collection("perfil")
           .doc(user)
           .collection("evaluaciones")
-          .doc("2021")
+          .doc(evaluacionActual)
           .onSnapshot((snapshot) => {
             if (snapshot.exists) {
               const data = snapshot.data();
@@ -91,27 +95,42 @@ export default function ObjectiveContainer({}: Props): ReactElement {
                 setObjectives(data?.objetivos);
               }
 
+              //here
+              if (data?.estado === EvaluationState.Retroalimentacion) {
+                setEvaluationState(EvaluationState.Retroalimentacion);
+                return;
+              }
+
+              if (data?.estado === EvaluationState.Evaluada) {
+                setEvaluationState(EvaluationState.Evaluada);
+                return;
+              }
+
               if (objectives.length > 0) {
                 setEvaluationState(EvaluationState.IngresarObjetivos);
               } else {
-                setEvaluationState(EvaluationState.NoIngresada);
+                setEvaluationState(EvaluationState.SinObjetivos);
               }
             }
           });
+      } else {
+        setEvaluationState(EvaluationState.NoIngresada);
       }
     };
 
     const setEvaluationComplete = async () => {
-      db.collection("perfil")
-        .doc(user!)
-        .collection("evaluacion")
-        .doc("2021")
-        .get()
-        .then((data) => {
-          if (data.exists) {
-            setEvaluationState(data.data()?.isCompleted);
-          }
-        });
+      if (evaluacionActual !== null) {
+        db.collection("perfil")
+          .doc(user!)
+          .collection("evaluacion")
+          .doc(evaluacionActual)
+          .get()
+          .then((data) => {
+            if (data.exists) {
+              setEvaluationState(data.data()?.isCompleted);
+            }
+          });
+      }
     };
 
     getObjectives();
@@ -119,6 +138,8 @@ export default function ObjectiveContainer({}: Props): ReactElement {
 
     return () => {};
   }, [objectives.length]);
+
+  console.log(objectives);
 
   useEffect(() => {
     if (objectives !== []) {
@@ -142,13 +163,15 @@ export default function ObjectiveContainer({}: Props): ReactElement {
     const user = sessionStorage.getItem("user");
     const objetivos = objectives.filter((item) => item.id !== id);
 
-    db.collection("perfil")
-      .doc(user!)
-      .collection("evaluaciones")
-      .doc("2021")
-      .set({
-        objetivos,
-      });
+    if (evaluacionActual !== null) {
+      db.collection("perfil")
+        .doc(user!)
+        .collection("evaluaciones")
+        .doc(evaluacionActual)
+        .set({
+          objetivos,
+        });
+    }
   };
 
   const saveEvaluation = () => {
@@ -283,6 +306,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
   };
 
   const handleView = () => {
+    console.log(evaluationState);
     if (evaluationState === EvaluationState.ObjetivosIngresados) {
       return (
         <Grid>
@@ -303,7 +327,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
       );
     }
 
-    if (evaluationState === EvaluationState.NoIngresada) {
+    if (evaluationState === EvaluationState.SinObjetivos) {
       return (
         <Grid>
           <Grid>
@@ -325,6 +349,26 @@ export default function ObjectiveContainer({}: Props): ReactElement {
           </Grid>
         </Grid>
       );
+    }
+
+    if (evaluationState === EvaluationState.NoIngresada) {
+      return (
+        <Grid>
+          <Grid>
+            <Typography>
+              No tiene ninguna evaluación pendiente por el momento!
+            </Typography>
+          </Grid>
+        </Grid>
+      );
+    }
+
+    if (evaluationState === EvaluationState.Retroalimentacion) {
+      return <Results estado={EvaluationState.Retroalimentacion} />;
+    }
+
+    if (evaluationState === EvaluationState.Evaluada) {
+      return <Results estado={EvaluationState.Evaluada} />;
     }
 
     if (evaluationState === EvaluationState.IngresarObjetivos) {
@@ -377,6 +421,7 @@ export default function ObjectiveContainer({}: Props): ReactElement {
         objectives={objectives}
         objectiveData={objectiveEdit}
         onCloseEdit={handleEdit}
+        evaluacionActual={evaluacionActual}
       />
     </>
   );

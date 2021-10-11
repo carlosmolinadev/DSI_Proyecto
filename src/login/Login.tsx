@@ -64,6 +64,7 @@ export default function Login({}: Props): ReactElement {
       const credenciales = data.data();
       const role = credenciales?.rol;
       const supervisorId = credenciales?.supervisorId;
+      const currentEvaluation = credenciales?.evaluacionActual;
       if (
         credenciales?.empleadoId === usuario &&
         credenciales?.password === password
@@ -77,6 +78,12 @@ export default function Login({}: Props): ReactElement {
         sessionStorage.setItem("role", role);
         if (supervisorId !== undefined) {
           sessionStorage.setItem("supervisorId", supervisorId);
+        }
+        if (currentEvaluation !== undefined) {
+          if (currentEvaluation === "") {
+          } else {
+            sessionStorage.setItem("evaluacionActual", currentEvaluation);
+          }
         }
         history.push("/inicio");
       } else {

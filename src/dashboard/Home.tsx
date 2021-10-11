@@ -44,9 +44,9 @@ export default function Home({}: Props): ReactElement {
           color="primary"
           variant="contained"
           style={{ marginLeft: 10, marginRight: 10 }}
-          onClick={() => history.push("/resultados")}
+          onClick={() => history.push("/historial")}
         >
-          Resultados
+          Historial
         </Button>
 
         {profile?.rol === "supervisor" && (
