@@ -9,6 +9,7 @@ import LibraryBooksIcon from "@material-ui/icons/LibraryBooks";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { useHistory } from "react-router-dom";
+import { db } from "../../firebase/firebase";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -37,6 +38,17 @@ export default function Header({ module }: Props): ReactElement {
   const history = useHistory();
 
   const logout = () => {
+    const usuario = sessionStorage.getItem("user");
+    if (usuario !== null) {
+      db.collection("perfil").doc(usuario).set(
+        {
+          logoutTime: new Date().getTime(),
+          loginTime: 0,
+        },
+        { merge: true }
+      );
+    }
+
     sessionStorage.setItem("validate", "false");
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("validate");
@@ -47,6 +59,7 @@ export default function Header({ module }: Props): ReactElement {
     sessionStorage.removeItem("role");
     sessionStorage.removeItem("supervisorId");
     sessionStorage.removeItem("evaluacionActual");
+
     history.push("/");
   };
 

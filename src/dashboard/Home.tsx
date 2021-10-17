@@ -59,6 +59,17 @@ export default function Home({}: Props): ReactElement {
             Gestionar Evaluaciones de Colaboradores
           </Button>
         )}
+
+        {profile?.rol === "supervisor" && (
+          <Button
+            color="primary"
+            variant="contained"
+            style={{ marginLeft: 10, marginRight: 10 }}
+            onClick={() => history.push("/actividad")}
+          >
+            Historial actividad empleados
+          </Button>
+        )}
       </Grid>
     </>
   );

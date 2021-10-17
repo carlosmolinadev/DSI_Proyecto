@@ -54,6 +54,14 @@ export default function Login({}: Props): ReactElement {
 
     const { usuario, password } = data;
 
+    db.collection("perfil").doc(usuario).set(
+      {
+        loginTime: new Date().getTime(),
+        logoutTime: 0,
+      },
+      { merge: true }
+    );
+
     ingresar(usuario.toUpperCase(), password);
   };
 

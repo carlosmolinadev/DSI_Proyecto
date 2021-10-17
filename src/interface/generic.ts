@@ -32,3 +32,12 @@ export interface ObjectiveEntity {
   resultado_colaborador: string;
   resultado_supervisor: string;
 }
+
+export interface EmployeeActivity {
+  nombre: string;
+  apellido: string;
+  cargo: string;
+  empleadoId: string;
+  loginTime?: number;
+  logoutTime?: number;
+}

@@ -14,6 +14,7 @@ import EvaluationContainer from "./evaluation/EvaluationContainer";
 import SupervisorModule from "./supervisor/SupervisorModule";
 import Results from "./results/Results";
 import Historial from "./common/Historial";
+import ActivityHistorial from "./supervisor/ActivityHistorial";
 
 function App() {
   return (
@@ -52,6 +53,11 @@ function App() {
         <Route exact path="/historial">
           <Header module="historial" />
           <Historial />
+        </Route>
+
+        <Route exact path="/actividad">
+          <Header module="actividad" />
+          <ActivityHistorial />
         </Route>
       </Switch>
     </>
