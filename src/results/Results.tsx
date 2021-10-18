@@ -53,6 +53,7 @@ export default function Results({ estado }: Props): ReactElement {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [year, setYear] = useState();
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [acuerdos, setAcuerdos] = useState("");
   const history = useHistory();
 
   useEffect(() => {
@@ -66,7 +67,7 @@ export default function Results({ estado }: Props): ReactElement {
         .doc(evaluacionActual)
         .onSnapshot((snapshot) => {
           if (snapshot.exists) {
-            console.log(snapshot.data()!.objetivos);
+            setAcuerdos(snapshot.data()?.acuerdos);
             setObjectives(snapshot.data()!.objetivos);
             setYear(snapshot.data()!.year);
           }
@@ -104,7 +105,6 @@ export default function Results({ estado }: Props): ReactElement {
     let logro = 0;
     let meta = 0;
     let sum = 0;
-    const totalObjectives = objectives.length;
 
     const objetivos = [...objectives];
 
@@ -123,7 +123,6 @@ export default function Results({ estado }: Props): ReactElement {
     let logro = 0;
     let meta = 0;
     let sum = 0;
-    const totalObjectives = objectives.length;
 
     const objetivos = [...objectives];
 
@@ -408,6 +407,25 @@ export default function Results({ estado }: Props): ReactElement {
           </Grid>
         ))}
       </Grid>
+
+      {acuerdos !== "" && (
+        <Grid
+          container
+          justify="center"
+          style={{ marginTop: 20, marginBottom: 20 }}
+        >
+          <Paper style={{ padding: 20, width: "80%" }}>
+            <Grid container>
+              <Typography style={{ fontWeight: "bold" }}>
+                Acuerdos del año para el colaborador
+              </Typography>
+            </Grid>
+            <Grid container>
+              <Typography>{acuerdos}</Typography>
+            </Grid>
+          </Paper>
+        </Grid>
+      )}
 
       <Grid
         container

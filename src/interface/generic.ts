@@ -31,6 +31,7 @@ export interface ObjectiveEntity {
   year: number;
   resultado_colaborador: string;
   resultado_supervisor: string;
+  acuerdos: string;
 }
 
 export interface EmployeeActivity {

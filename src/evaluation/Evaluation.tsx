@@ -67,6 +67,7 @@ export default function Evaluation({
   const [tempObjectives, setTempObjectives] = useState<Objective[]>([
     ...objectives,
   ]);
+  const [acuerdos, setAcuerdos] = useState("");
 
   const setInput = (
     id: string,
@@ -167,7 +168,6 @@ export default function Evaluation({
   };
 
   const sendEvaluation = (role: string, colaboradorId: string) => {
-    console.log(tempObjectives);
     db.collection("perfil")
       .doc(evaluationOwner)
       .collection("evaluaciones")
@@ -233,6 +233,7 @@ export default function Evaluation({
         .set(
           {
             estado: EvaluationState.Evaluada,
+            acuerdos,
           },
           { merge: true }
         );
@@ -559,6 +560,24 @@ export default function Evaluation({
                         </FormControl>
                       </Grid>
                     </Grid>
+
+                    {role === "supervisor" && (
+                      <Grid container>
+                        <FormControl fullWidth>
+                          <TextField
+                            className={classes.input}
+                            label="Acuerdos con colaborador"
+                            variant="outlined"
+                            name="acuerdos"
+                            rows={10}
+                            multiline
+                            defaultValue={""}
+                            value={acuerdos}
+                            onChange={(e) => setAcuerdos(e.target.value)}
+                          />
+                        </FormControl>
+                      </Grid>
+                    )}
                   </Grid>
                 </Paper>
               </Grid>

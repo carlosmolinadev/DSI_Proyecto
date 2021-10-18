@@ -9,5 +9,6 @@ El resultado no debe estar disponible si no tiene evaluacion pendiente
 Ingresos
 Usuario // Fecha // Hora
 
-
+//Acuerdos
+General
 
